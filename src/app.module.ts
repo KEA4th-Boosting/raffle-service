@@ -7,8 +7,6 @@ import { Entry } from './entry/entities/entry.entity';
 import { Raffle } from './raffle/entities/raffle.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { WinnerController } from './winner/winner.controller';
-import { WinnerModule } from './winner/winner.module';
 
 @Module({
   imports: [
@@ -25,9 +23,8 @@ import { WinnerModule } from './winner/winner.module';
     }),
     EntryModule,
     RaffleModule,
-    WinnerModule,
   ],
-  controllers: [AppController, WinnerController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

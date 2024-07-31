@@ -11,7 +11,7 @@ export class RaffleController {
   async create(@Body() createRaffleDto: CreateRaffleDto): Promise<Raffle> {
     return await this.raffleService.create(createRaffleDto);
   }
-
+  
   @Put()
   async raffle(@Body() raffleRaffleDto: RaffleRaffleDto): Promise<Raffle> {
     return await this.raffleService.raffle(raffleRaffleDto);
