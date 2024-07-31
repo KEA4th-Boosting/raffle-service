@@ -4,6 +4,8 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
+    BeforeInsert,
+    BeforeUpdate,
 } from 'typeorm';
 
 @Entity({ name: 'entries' })
@@ -22,4 +24,14 @@ export class Entry {
 
     @UpdateDateColumn()
     updated_date: Date;
+
+    @BeforeInsert()
+    setUpdatedDateBeforeInsert() {
+        this.updated_date = this.created_date;
+    }
+
+    @BeforeUpdate()
+    setUpdatedDateBeforeUpdate() {
+        this.updated_date = new Date();
+    }
 }

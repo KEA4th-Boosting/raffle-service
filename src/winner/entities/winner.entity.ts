@@ -4,6 +4,8 @@ import {
     PrimaryGeneratedColumn,
     CreateDateColumn,
     UpdateDateColumn,
+    BeforeInsert,
+    BeforeUpdate,
 } from 'typeorm';
 
 type CancellationNoShowStatus = 'cancellation' | 'noshow';
@@ -22,7 +24,7 @@ export class Winner {
     @Column({ type: 'bigint', nullable: false, unique: false })
     user_id: number;
 
-    @Column({ type: 'int', nullable: false, unique: false })
+    @Column({ type: 'int', nullable: false, unique: false, default: 0 })
     waiting_number: number;
 
     @Column({ type: 'varchar', nullable: true, unique: false })
@@ -36,4 +38,14 @@ export class Winner {
 
     @UpdateDateColumn()
     updated_date: Date;
+
+    @BeforeInsert()
+    setUpdatedDateBeforeInsert() {
+        this.updated_date = this.created_date;
+    }
+
+    @BeforeUpdate()
+    setUpdatedDateBeforeUpdate() {
+        this.updated_date = new Date();
+    }
 }
