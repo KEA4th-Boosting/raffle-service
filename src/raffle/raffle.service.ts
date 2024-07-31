@@ -16,4 +16,8 @@ export class RaffleService {
     const newRaffle = this.raffleRepository.create(createRaffleDto);
     return await this.raffleRepository.save(newRaffle);
   }
+
+  async raffle(raffleRaffleDto: raffleRaffleDto): Promise<Raffle> {
+
+  }
 }

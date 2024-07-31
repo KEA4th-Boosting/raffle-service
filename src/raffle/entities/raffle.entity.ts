@@ -4,11 +4,13 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  BeforeInsert,
+  BeforeUpdate,
 } from 'typeorm';
 
-@Entity({ name: 'raffle' })
+@Entity({ name: 'raffles' })
 export class Raffle {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type: 'bigint'})
   id: number;
 
   @Column({ type: 'bigint', nullable: false, unique: false })
@@ -61,4 +63,14 @@ export class Raffle {
 
   @UpdateDateColumn()
   updated_date: Date;
+
+  @BeforeInsert()
+  setUpdatedDateBeforeInsert() {
+    this.updated_date = this.created_date;
+  }
+
+  @BeforeUpdate()
+  setUpdatedDateBeforeUpdate() {
+    this.updated_date = new Date();
+  }
 }
