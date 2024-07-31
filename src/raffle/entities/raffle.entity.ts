@@ -6,9 +6,9 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
-@Entity({ name: 'raffle' })
+@Entity({ name: 'raffles' })
 export class Raffle {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type: 'bigint'})
   id: number;
 
   @Column({ type: 'bigint', nullable: false, unique: false })
