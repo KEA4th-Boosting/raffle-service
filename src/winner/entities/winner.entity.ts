@@ -8,8 +8,10 @@ import {
     BeforeUpdate,
 } from 'typeorm';
 
-@Entity({ name: 'entries' })
-export class Entry {
+type CancellationNoShowStatus = 'cancellation' | 'noshow';
+
+@Entity({ name: 'winners' })
+export class Winner {
     @PrimaryGeneratedColumn({ type: 'bigint'})
     id: number;
 
@@ -17,7 +19,19 @@ export class Entry {
     raffle_id: number;
 
     @Column({ type: 'bigint', nullable: false, unique: false })
+    entry_id: number;
+
+    @Column({ type: 'bigint', nullable: false, unique: false })
     user_id: number;
+
+    @Column({ type: 'int', nullable: false, unique: false, default: 0 })
+    waiting_number: number;
+
+    @Column({ type: 'varchar', nullable: true, unique: false })
+    cancellation_noshow_status: CancellationNoShowStatus;
+
+    @Column({ type: 'datetime', nullable: true, unique: false })
+    cancellation_noshow_time: Date;
 
     @CreateDateColumn()
     created_date: Date;
