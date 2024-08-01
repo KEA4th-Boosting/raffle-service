@@ -2,55 +2,68 @@ import {
   IsInt,
   IsNumber,
   IsString,
-  IsBoolean,
-  IsDate,
-  IsOptional,
+  IsDate, IsNotEmpty,
 } from 'class-validator';
+import {ApiProperty} from "@nestjs/swagger";
 
 export class CreateRaffleDto {
   @IsInt()
-  accommodation_id: number;
+  @IsNotEmpty()
+  @ApiProperty({ description: '숙소 아이디', example: '1' })
+  readonly accommodation_id: number;
 
   @IsInt()
-  room_id: number;
+  @IsNotEmpty()
+  @ApiProperty({ description: '방 아이디', example: '1' })
+  readonly room_id: number;
 
   @IsString()
-  raffle_name: string;
+  @IsNotEmpty()
+  @ApiProperty({ description: '추첨 이름', example: '6월 3주차 신라스테이 여수 스탠다드 더블 추첨' })
+  readonly raffle_name: string;
 
   @IsDate()
-  raffle_date: Date;
+  @IsNotEmpty()
+  @ApiProperty({ description: '추첨 일자', example: '2024-07-31T12:08:24.228Z' })
+  readonly raffle_date: Date;
 
   @IsDate()
-  check_in: Date;
+  @IsNotEmpty()
+  @ApiProperty({ description: '체크인 날짜', example: '2024-07-31T12:08:24.228Z' })
+  readonly check_in: Date;
 
   @IsDate()
-  check_out: Date;
+  @IsNotEmpty()
+  @ApiProperty({ description: '체크아웃 날짜', example: '2024-07-31T12:08:24.228Z' })
+  readonly check_out: Date;
 
   @IsInt()
-  schedule: number;
+  @IsNotEmpty()
+  @ApiProperty({ description: '숙소 일정', example: '3' })
+  readonly schedule: number;
 
   @IsInt()
-  participant_cnt: number;
+  @IsNotEmpty()
+  @ApiProperty({ description: '추첨 당첨인원수', example: '5' })
+  readonly winner_cnt: number;
 
   @IsInt()
-  winner_cnt: number;
-
-  @IsBoolean()
-  raffle_status: boolean;
-
-  @IsInt()
-  raffle_waiting_cnt;
-
-  @IsInt()
-  @IsOptional()
-  current_waiting_number?: number;
+  @IsNotEmpty()
+  @ApiProperty({ description: '추첨 대기자 수', example: '2' })
+  readonly raffle_waiting_cnt: number;
 
   @IsNumber()
-  discount_rate: number;
+  @IsNotEmpty()
+  @ApiProperty({ description: '할인율', example: '35.5' })
+  readonly discount_rate: number;
 
   @IsDate()
-  entry_start_date: Date;
+  @IsNotEmpty()
+  @ApiProperty({ description: '응모 시작 시간', example: '2024-07-31T12:08:24.228Z' })
+  readonly entry_start_date: Date;
 
   @IsDate()
-  entry_end_date: Date;
+  @IsNotEmpty()
+  @ApiProperty({ description: '응모 마감 시간', example: '2024-07-31T12:08:24.228Z' })
+  readonly entry_end_date: Date;
 }
