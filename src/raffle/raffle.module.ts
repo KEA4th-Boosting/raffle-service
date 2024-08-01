@@ -6,7 +6,7 @@ import { Raffle } from './entities/raffle.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Raffle])],
-  exports: [TypeOrmModule],
+  exports: [RaffleService],
   controllers: [RaffleController],
   providers: [RaffleService],
 })

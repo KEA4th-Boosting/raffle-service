@@ -1,17 +1,16 @@
 import {
-    IsInt, IsNotEmpty, Validate,
+    IsInt, IsNotEmpty,
 } from 'class-validator';
-import { IsEntryPossible } from "../../raffle/raffle.decorator";
+import {ApiProperty} from "@nestjs/swagger";
 
 export class CreateEntryDto {
     @IsInt()
     @IsNotEmpty()
-    @Validate(IsEntryPossible, {
-        message: '응모 가능 기간이 아닙니다.',
-    })
+    @ApiProperty({ description: '추첨 아이디', example: '1' })
     readonly raffle_id: number;
 
     @IsInt()
     @IsNotEmpty()
+    @ApiProperty({ description: '유저 아이디', example: '1' })
     readonly user_id: number;
 }

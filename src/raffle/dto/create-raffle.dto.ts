@@ -2,9 +2,7 @@ import {
   IsInt,
   IsNumber,
   IsString,
-  IsBoolean,
   IsDate,
-  IsOptional,
 } from 'class-validator';
 
 export class CreateRaffleDto {
@@ -30,20 +28,10 @@ export class CreateRaffleDto {
   schedule: number;
 
   @IsInt()
-  participant_cnt: number;
-
-  @IsInt()
   winner_cnt: number;
 
-  @IsBoolean()
-  raffle_status: boolean;
-
   @IsInt()
-  raffle_waiting_cnt;
-
-  @IsInt()
-  @IsOptional()
-  current_waiting_number?: number;
+  raffle_waiting_cnt: number;
 
   @IsNumber()
   discount_rate: number;

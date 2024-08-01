@@ -27,6 +27,9 @@ export class Winner {
     @Column({ type: 'int', nullable: false, unique: false, default: 0 })
     waiting_number: number;
 
+    @Column({ type: 'float', nullable: false, unique: false, default: 0 })
+    benefit_value: number;
+
     @Column({ type: 'varchar', nullable: true, unique: false })
     cancellation_noshow_status: CancellationNoShowStatus;
 
