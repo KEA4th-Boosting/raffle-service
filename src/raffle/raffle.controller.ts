@@ -11,11 +11,11 @@ export class RaffleController {
 
   @ApiOperation({ summary: '추첨 생성', description: '새로운 숙소의 추첨을 생성합니다.'})
   @Post()
-  async create(@Body() createRaffleDto: CreateRaffleDto): Promise<{ message: string, statusCode: number }> {
+  async create(@Body() createRaffleDto: CreateRaffleDto): Promise<{ systemCode: number, message: string }> {
     await this.raffleService.create(createRaffleDto);
     return {
-      message: "추첨이 생성되었습니다.",
-      statusCode: HttpStatus.CREATED,
+      systemCode: HttpStatus.CREATED,
+      message: "추첨이 생성되었습니다."
     };
   }
 
