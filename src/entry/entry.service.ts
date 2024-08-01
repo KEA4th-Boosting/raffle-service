@@ -25,4 +25,12 @@ export class EntryService {
         const newEntry = this.entryRepository.create(createEntryDto);
         return await this.entryRepository.save(newEntry);
     }
+
+    async findOne(entryId: number): Promise<Entry> {
+        return await this.entryRepository.findOne({
+            where: {
+                id: entryId,
+            },
+        });
+    }
 }

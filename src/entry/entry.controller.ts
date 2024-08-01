@@ -1,4 +1,4 @@
-import {Body, Controller, HttpStatus, Post, Put} from '@nestjs/common';
+import {Body, Controller, Get, HttpStatus, Param, Post, Put} from '@nestjs/common';
 import {EntryService} from "./entry.service";
 import {Entry} from "./entities/entry.entity";
 import {CreateEntryDto} from "./dto/create-entry.dto";
@@ -11,11 +11,22 @@ export class EntryController {
 
     @ApiOperation({ summary: '응모 생성', description: '새로운 응모 항목을 생성합니다.'})
     @Post()
-    async create(@Body() createEntryDto: CreateEntryDto): Promise<{ message: string, statusCode: number }> {
+    async create(@Body() createEntryDto: CreateEntryDto): Promise<{ systemCode: number, message: string }> {
         await this.entryService.create(createEntryDto);
         return {
-            message: "추첨이 생성되었습니다.",
-            statusCode: HttpStatus.CREATED,
+            systemCode: HttpStatus.CREATED,
+            message: "추첨이 생성되었습니다."
+        }
+    }
+
+    @ApiOperation({ summary: '응모 조회', description: '응모 아이디로 응모를 조회합니다.'})
+    @Get('/:entryId')
+    async findOne(@Param('entryId') entryId: number): Promise<{ systemCode: number, message: string, data: Entry }> {
+        const entry: Entry = await this.entryService.findOne(entryId);
+        return {
+            systemCode: HttpStatus.OK,
+            message: "응모 조회에 성공하였습니다.",
+            data: entry
         }
     }
 }
