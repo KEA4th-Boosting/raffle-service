@@ -58,6 +58,11 @@ export class RaffleService {
     return this.findOne(raffleId);
   }
 
+  async remove(raffleId: number): Promise<number> {
+    await this.raffleRepository.delete(raffleId);
+    return raffleId;
+  }
+
   async isRaffleOngoing(raffleId: number): Promise<boolean> {
     const raffle = await this.findOne(raffleId);
 
