@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Raffle } from './entities/raffle.entity';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
 import {Entry} from "../entry/entities/entry.entity";
+import {UpdateRaffleDto} from "./dto/update-raffle.dto";
 
 @Injectable()
 export class RaffleService {
@@ -52,6 +53,10 @@ export class RaffleService {
     });
   }
 
+  async update(raffleId: number, updateRaffleDto: UpdateRaffleDto): Promise<Raffle> {
+    await this.raffleRepository.update(raffleId, updateRaffleDto);
+    return this.findOne(raffleId);
+  }
 
   async isRaffleOngoing(raffleId: number): Promise<boolean> {
     const raffle = await this.findOne(raffleId);

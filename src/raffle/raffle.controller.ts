@@ -4,6 +4,7 @@ import { RaffleService } from './raffle.service';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
 import {ApiOperation, ApiTags} from "@nestjs/swagger";
 import {Entry} from "../entry/entities/entry.entity";
+import {UpdateRaffleDto} from "./dto/update-raffle.dto";
 
 @ApiTags('raffle')
 @Controller('raffle')
@@ -55,7 +56,19 @@ export class RaffleController {
     };
   }
 
-
+  @ApiOperation({ summary: '추첨 수정', description: '추첨의 정보를 수정합니다.' })
+  @Put('/:raffleId')
+  async update(
+      @Param('raffleId') raffleId: number,
+      @Body() updateRaffleDto: UpdateRaffleDto,
+  ): Promise<{ systemCode: number, message: string, data: Raffle }> {
+    const updatedRaffle: Raffle = await this.raffleService.update(raffleId, updateRaffleDto);
+    return {
+      systemCode: HttpStatus.OK,
+      message: "추첨 정보 수정에 성공하였습니다.",
+      data: updatedRaffle
+    };
+  }
 
   /*
   @Put()
