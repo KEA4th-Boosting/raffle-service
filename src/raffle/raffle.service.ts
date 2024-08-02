@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 
 import { Raffle } from './entities/raffle.entity';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
+import {Entry} from "../entry/entities/entry.entity";
 
 @Injectable()
 export class RaffleService {
