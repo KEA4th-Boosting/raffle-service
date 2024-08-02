@@ -1,4 +1,4 @@
-import {Body, Controller, Get, HttpStatus, Param, Post, Put} from '@nestjs/common';
+import {Body, Controller, Delete, Get, HttpStatus, Param, Post, Put} from '@nestjs/common';
 import { Raffle } from './entities/raffle.entity';
 import { RaffleService } from './raffle.service';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
@@ -69,6 +69,17 @@ export class RaffleController {
       data: updatedRaffle
     };
   }
+
+  @ApiOperation({ summary: '추첨 삭제', description: '추첨을 삭제합니다.' })
+  @Delete('/:raffleId')
+  async remove(@Param('raffleId') raffleId: number): Promise<{ systemCode: number, message: string }> {
+    await this.raffleService.remove(raffleId);
+    return {
+      systemCode: HttpStatus.OK,
+      message: "추첨 삭제에 성공하였습니다.",
+    };
+  }
+
 
   /*
   @Put()
