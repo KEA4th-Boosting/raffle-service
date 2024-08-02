@@ -30,6 +30,29 @@ export class RaffleService {
     return raffle;
   }
 
+  async findOngoingRafflesLatest(): Promise<Raffle[]> {
+    const now = new Date();
+    return await this.raffleRepository.find({
+      where: {
+        entry_start_date: { $lte: now },
+        entry_end_date: { $gte: now },
+      },
+      order: { id: 'DESC' },
+    });
+  }
+
+  async findOngoingRafflesPopular(): Promise<Raffle[]> {
+    const now = new Date();
+    return await this.raffleRepository.find({
+      where: {
+        entry_start_date: { $lte: now },
+        entry_end_date: { $gte: now },
+      },
+      order: { participant_cnt: 'DESC' },
+    });
+  }
+
+
   async isRaffleOngoing(raffleId: number): Promise<boolean> {
     const raffle = await this.findOne(raffleId);
 
