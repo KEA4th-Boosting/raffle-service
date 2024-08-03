@@ -36,7 +36,7 @@ export class RaffleController {
   @Get('/ongoing/latest')
   async findOngoingRafflesLatest(): Promise<{ systemCode: number, message: string, data: number[] }> {
     const ongoingRafflesLatest: Raffle[] = await this.raffleService.findOngoingRafflesLatest();
-    const accommodationIds = ongoingRafflesLatest.map(raffle => raffle.accommodation_id);
+    const accommodationIds = Array.from(new Set(ongoingRafflesLatest.map(raffle => raffle.accommodation_id)));
     return {
       systemCode: HttpStatus.OK,
       message: "진행중인 추첨 숙소 최신순 조회에 성공하였습니다.",
@@ -47,8 +47,8 @@ export class RaffleController {
   @ApiOperation({ summary: '진행중인 추첨 숙소 인기순 조회', description: '진행중인 추첨의 숙소 아이디를 인기순으로 조회합니다.' })
   @Get('/ongoing/popular')
   async findOngoingRafflesPopular(): Promise<{ systemCode: number, message: string, data: number[] }> {
-    const ongoingRafflesPopular: Raffle[] = await this.raffleService.findOngoingRafflesPopular);
-    const accommodationIds = ongoingRafflesPopular.map(raffle => raffle.accommodation_id);
+    const ongoingRafflesPopular: Raffle[] = await this.raffleService.findOngoingRafflesPopular();
+    const accommodationIds = Array.from(new Set(ongoingRafflesPopular.map(raffle => raffle.accommodation_id)));
     return {
       systemCode: HttpStatus.OK,
       message: "진행중인 추첨 숙소 인기순 조회에 성공하였습니다.",
