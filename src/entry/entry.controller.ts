@@ -1,4 +1,4 @@
-import {Body, Controller, Get, HttpStatus, Param, Post, Put} from '@nestjs/common';
+import {Body, Controller, Delete, Get, HttpStatus, Param, Post, Put} from '@nestjs/common';
 import {EntryService} from "./entry.service";
 import {Entry} from "./entities/entry.entity";
 import {CreateEntryDto} from "./dto/create-entry.dto";
@@ -28,6 +28,16 @@ export class EntryController {
             message: "응모 조회에 성공하였습니다.",
             data: entry
         }
+    }
+
+    @ApiOperation({ summary: '응모 삭제', description: '응모를 삭제합니다.' })
+    @Delete('/:entryId')
+    async remove(@Param('entryId') entryId: number): Promise<{ systemCode: number, message: string }> {
+        await this.entryService.remove(entryId);
+        return {
+            systemCode: HttpStatus.OK,
+            message: "응모 삭제에 성공하였습니다.",
+        };
     }
 }
 
