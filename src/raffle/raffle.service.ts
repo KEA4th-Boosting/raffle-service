@@ -1,6 +1,6 @@
 import {Injectable, NotFoundException} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import {LessThanOrEqual, MoreThanOrEqual, Repository} from 'typeorm';
 
 import { Raffle } from './entities/raffle.entity';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
@@ -35,8 +35,8 @@ export class RaffleService {
     const now = new Date();
     return await this.raffleRepository.find({
       where: {
-        entry_start_date: { $lte: now },
-        entry_end_date: { $gte: now },
+        entry_start_date: LessThanOrEqual(now),
+        entry_end_date: MoreThanOrEqual(now),
       },
       order: { id: 'DESC' },
     });
@@ -46,9 +46,9 @@ export class RaffleService {
     const now = new Date();
     return await this.raffleRepository.find({
       where: {
-        entry_start_date: { $lte: now },
-        entry_end_date: { $gte: now },
-      },
+        entry_start_date: LessThanOrEqual(now),
+        entry_end_date: MoreThanOrEqual(now),
+        },
       order: { participant_cnt: 'DESC' },
     });
   }
