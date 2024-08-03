@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 
 import { Raffle } from './entities/raffle.entity';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
+import {Entry} from "../entry/entities/entry.entity";
+import {UpdateRaffleDto} from "./dto/update-raffle.dto";
 
 @Injectable()
 export class RaffleService {
@@ -27,6 +29,38 @@ export class RaffleService {
     }
 
     return raffle;
+  }
+
+  async findOngoingRafflesLatest(): Promise<Raffle[]> {
+    const now = new Date();
+    return await this.raffleRepository.find({
+      where: {
+        entry_start_date: { $lte: now },
+        entry_end_date: { $gte: now },
+      },
+      order: { id: 'DESC' },
+    });
+  }
+
+  async findOngoingRafflesPopular(): Promise<Raffle[]> {
+    const now = new Date();
+    return await this.raffleRepository.find({
+      where: {
+        entry_start_date: { $lte: now },
+        entry_end_date: { $gte: now },
+      },
+      order: { participant_cnt: 'DESC' },
+    });
+  }
+
+  async update(raffleId: number, updateRaffleDto: UpdateRaffleDto): Promise<Raffle> {
+    await this.raffleRepository.update(raffleId, updateRaffleDto);
+    return this.findOne(raffleId);
+  }
+
+  async remove(raffleId: number): Promise<number> {
+    await this.raffleRepository.delete(raffleId);
+    return raffleId;
   }
 
   async isRaffleOngoing(raffleId: number): Promise<boolean> {
