@@ -33,4 +33,9 @@ export class EntryService {
             },
         });
     }
+
+    async remove(entryId: number): Promise<number> {
+        await this.entryRepository.delete(entryId);
+        return entryId;
+    }
 }
