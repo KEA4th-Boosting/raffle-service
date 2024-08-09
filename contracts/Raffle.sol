@@ -1,18 +1,21 @@
 pragma solidity ^0.8.24;
 
-contract Raffle {
+contract Raffle { 
     uint256 public totalIndex;
     address public owner;
     mapping(address => uint256) public entries;
     address[] public participants;
 
-    unit256 public raffleDate;
+    uint256 public raffleDate;
     uint256 public winnerCnt;
     uint256 public raffleWaitingCnt;
-    address public winner;
+    address[] public winners;
+    address[] public waitingList;
+    
+    uint256 public constant KST_OFFSET = 9 * 60 * 60;
 
     constructor(uint256 _raffleDate, uint256 _winnerCnt, uint256 _raffleWaitingCnt) {
-        raffleDate = _raffleDate;
+        raffleDate = _raffleDate + KST_OFFSET;
         winnerCnt = _winnerCnt;
         raffleWaitingCnt = _raffleWaitingCnt;
         owner = msg.sender;
@@ -27,28 +30,59 @@ contract Raffle {
         totalIndex += msg.value;
     }
 
-    function setRaffleDate(uint256 _raffleDate) external onlyOwner {
-        raffleDate = _raffleDate;
-    }
-
-    function selectWinner() external onlyOwner returns (address) {
+    function selectWinners() external {
+        require(msg.sender == owner, "Only the admin can create the raffle.");
         require(block.timestamp >= raffleDate, "Raffle has not ended yet.");
-        require(totalIndex > 0, "No entries in the raffle.");
+        require(participants.length > 0, "No entries in the raffle.");
 
-        uint256 randomIndex = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty))) % totalIndex;
-        uint256 cumulativeSum = 0;
+        uint256 participantsCount = participants.length;
+        uint256[] memory randomIndexes = new uint256[](participantsCount);
+        uint256 seed = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty)));
 
-        for (uint256 i = 0; i < participants.length; i++) {
-            cumulativeSum += entries[participants[i]];
-            if (randomIndex < cumulativeSum) {
-                winner = participants[i];
-                return winner;
-            }
+        // Generate unique random indexes
+        for (uint256 i = 0; i < participantsCount; i++) {
+            randomIndexes[i] = i;
         }
-        return address(0);
+
+        // Fisher-Yates shuffle
+        for (uint256 i = participantsCount - 1; i > 0; i--) {
+            uint256 j = seed % (i + 1);
+            seed = uint256(keccak256(abi.encodePacked(seed)));
+            (randomIndexes[i], randomIndexes[j]) = (randomIndexes[j], randomIndexes[i]);
+        }
+
+        // Select winners
+        for (uint256 i = 0; i < winnerCnt && i < participantsCount; i++) {
+            winners.push(participants[randomIndexes[i]]);
+        }
+
+        // Select waiting list
+        for (uint256 i = winnerCnt; i < winnerCnt + raffleWaitingCnt && i < participantsCount; i++) {
+            waitingList.push(participants[randomIndexes[i]]);
+        }
     }
 
-    function getWinner() external view returns (address) {
-        return winner;
+    function getWinners() external view returns (address[] memory) {
+        return winners;
+    }
+
+    function getWaitingList() external view returns (address[] memory) {
+        return waitingList;
+    }
+
+    function getParticipants() external view returns (address[] memory) {
+        return participants;
+    }
+
+    function getTotalIndex() external view returns (uint256) {
+        return totalIndex;
+    }
+
+    function getRaffleDate() external view returns (uint256) {
+        return raffleDate;
+    }
+
+    function getCurrentTimestamp() external view returns (uint256) {
+        return block.timestamp;
     }
 }
