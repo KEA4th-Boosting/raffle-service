@@ -34,9 +34,9 @@ export class EntryService {
         });
     }
 
-    async findUserEntries(userId: number): Promise<>{
+    //async findUserEntries(userId: number): Promise<>{
 
-    }
+    //}
 
     async remove(entryId: number): Promise<number> {
         await this.entryRepository.delete(entryId);
