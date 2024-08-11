@@ -2,7 +2,7 @@ import {
   IsInt,
   IsNumber,
   IsString,
-  IsDate, IsNotEmpty,
+  IsDate, IsNotEmpty, IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {ApiProperty} from "@nestjs/swagger";
@@ -61,10 +61,10 @@ export class CreateRaffleDto {
   @ApiProperty({ description: '할인율', example: '35.5' })
   readonly discount_rate: number;
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @ApiProperty({ description: '컨트랙트 주소', example: '0x1234567890abcdef1234567890abcdef12345678' })
-  readonly contract_address: string;
+  contract_address: string;
 
   @Type(() => Date)
   @IsDate()

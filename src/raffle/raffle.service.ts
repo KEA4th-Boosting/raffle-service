@@ -52,6 +52,7 @@ export class RaffleService {
   }
 
   async create(createRaffleDto: CreateRaffleDto): Promise<Raffle> {
+    createRaffleDto.contract_address = await this.deployRaffle(createRaffleDto);
     const newRaffle = this.raffleRepository.create(createRaffleDto);
     return await this.raffleRepository.save(newRaffle);
   }
@@ -110,7 +111,7 @@ export class RaffleService {
     return isOngoing;
   }
 
-  async deployRaffle(createRaffleDto: CreateRaffleDto) {
+  async deployRaffle(createRaffleDto: CreateRaffleDto):Promise<string> {
     const privateKey = this.configService.get<string>('PRIVATE_KEY');
     const wallet = new ethers.Wallet(privateKey, this.provider);
 
@@ -118,13 +119,14 @@ export class RaffleService {
 
     const raffleFactory = new ethers.ContractFactory(this.abi, this.bytecode, wallet);
     const contract = await raffleFactory.deploy(
+        createRaffleDto.raffle_name,
         raffleDateTimestamp,
         createRaffleDto.winner_cnt,
         createRaffleDto.raffle_waiting_cnt
     );
     await contract.waitForDeployment();
 
-    return contract;
+    return await contract.getAddress();
   }
 
   async getRaffle(address: string) {
