@@ -12,12 +12,10 @@ contract Raffle {
     uint256 public raffleWaitingCnt;
     string[] public winners;
     string[] public waitingList;
-    
-    uint256 public constant KST_OFFSET = 9 * 60 * 60;
 
     constructor(string memory _raffleName, uint256 _raffleDate, uint256 _winnerCnt, uint256 _raffleWaitingCnt) {
         raffleName = _raffleName;
-        raffleDate = _raffleDate + KST_OFFSET;
+        raffleDate = _raffleDate;
         winnerCnt = _winnerCnt;
         raffleWaitingCnt = _raffleWaitingCnt;
         owner = msg.sender;
@@ -105,10 +103,6 @@ contract Raffle {
 
     function getWaitingList() external view returns (string[] memory) {
         return waitingList;
-    }
-
-    function getParticipants() external view returns (string[] memory) {
-        return participants;
     }
 
     function getTotalIndex() external view returns (uint256) {

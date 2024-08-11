@@ -27,19 +27,19 @@ export class CreateRaffleDto {
   @IsDate()
   @IsNotEmpty()
   @ApiProperty({ description: '추첨 일자', example: '2024-07-31T12:08:24.228Z' })
-  readonly raffle_date: Date;
+  raffle_date: Date;
 
   @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   @ApiProperty({ description: '체크인 날짜', example: '2024-07-31T12:08:24.228Z' })
-  readonly check_in: Date;
+  check_in: Date;
 
   @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   @ApiProperty({ description: '체크아웃 날짜', example: '2024-07-31T12:08:24.228Z' })
-  readonly check_out: Date;
+  check_out: Date;
 
   @IsInt()
   @IsNotEmpty()
@@ -70,11 +70,11 @@ export class CreateRaffleDto {
   @IsDate()
   @IsNotEmpty()
   @ApiProperty({ description: '응모 시작 시간', example: '2024-07-31T12:08:24.228Z' })
-  readonly entry_start_date: Date;
+  entry_start_date: Date;
 
   @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
   @ApiProperty({ description: '응모 마감 시간', example: '2024-07-31T12:08:24.228Z' })
-  readonly entry_end_date: Date;
+  entry_end_date: Date;
 }

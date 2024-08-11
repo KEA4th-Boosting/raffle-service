@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { ethers, JsonRpcProvider } from 'ethers';
@@ -51,7 +52,18 @@ export class RaffleService {
     this.bytecode = contractOutput.evm.bytecode.object;
   }
 
+  private toKST(date: Date): Date {
+    const kstOffset = 9 * 60 * 60 * 1000; // 9시간
+    return new Date(date.getTime() - kstOffset);
+  }
+
   async create(createRaffleDto: CreateRaffleDto): Promise<Raffle> {
+    createRaffleDto.raffle_date = this.toKST(new Date(createRaffleDto.raffle_date));
+    createRaffleDto.check_in = this.toKST(new Date(createRaffleDto.check_in));
+    createRaffleDto.check_out = this.toKST(new Date(createRaffleDto.check_out));
+    createRaffleDto.entry_start_date = this.toKST(new Date(createRaffleDto.entry_start_date));
+    createRaffleDto.entry_end_date = this.toKST(new Date(createRaffleDto.entry_end_date));
+
     createRaffleDto.contract_address = await this.deployRaffle(createRaffleDto);
     const newRaffle = this.raffleRepository.create(createRaffleDto);
     return await this.raffleRepository.save(newRaffle);
@@ -127,42 +139,26 @@ export class RaffleService {
   async getRaffle(address: string) {
     const contract = new ethers.Contract(address, this.abi, this.provider);
 
-    //await this.selectWinners(address);
-
     const raffleDate = (await contract.getRaffleDate()).toString();
     const blockTimestamp = (await contract.getCurrentTimestamp()).toString();
-    //const winnerCnt = await contract.winnerCnt();
-    //const raffleWaitingCnt = await contract.raffleWaitingCnt();
     const totalIndex = (await contract.totalIndex()).toString();
-    //const owner = await contract.owner();
-    const participants = await contract.getParticipants();
     const winners = await contract.getWinners();
     const waitingList = await contract.getWaitingList();
-    const entry = (await contract.getEntryMap('1')).toString();
+    const [participants, indexes] = await contract.getEntries();
+
+    const parsedEntries = participants.map((participant: string, i: number) => ({
+      participant,
+      index: indexes[i].toString(),
+    }));
 
     return {
       raffleDate,
       blockTimestamp,
-      //winnerCnt,
-      //raffleWaitingCnt,
       totalIndex,
-      //owner,
-      participants,
       winners,
       waitingList,
-      entry,
+      entries: parsedEntries,
     };
-  }
-
-  async selectWinners(address: string) {
-    const privateKey = this.configService.get<string>('PRIVATE_KEY');
-    const wallet = new ethers.Wallet(privateKey, this.provider);
-    const contract = new ethers.Contract(address, this.abi, wallet);
-
-    const tx = await contract.selectWinners();
-    await tx.wait();
-
-    return tx;
   }
 
   async enterRaffle(enterRaffleDto: EnterRaffleDto) {
@@ -175,10 +171,40 @@ export class RaffleService {
 
     const tx = await contract.enterRaffle(enterRaffleDto.user_id.toString(), enterRaffleDto.raffle_index);
     await tx.wait();
-    //const tx = await contract.sendTransaction({
-      //to: raffle.contract_address,
-      //value: enterRaffleDto.raffle_index,
-    //});
+
+    return tx;
+  }
+
+  @Cron(CronExpression.EVERY_10_SECONDS)
+  async progressRaffle() {
+    const raffles = await this.raffleRepository.find({
+      where: {
+        raffle_status: false,
+      },
+    });
+
+    const currentTime = Date.now();
+    //console.log(currentTime)
+
+    for (const raffle of raffles) {
+      //console.log(raffle.raffle_date.getTime())
+      if (raffle.raffle_date.getTime() <= currentTime) {
+        console.log(raffle.raffle_date.getTime(), currentTime);
+        await this.selectWinners(raffle.contract_address);
+        raffle.raffle_status = true;
+        //await this.raffleRepository.save(raffle);
+        await this.raffleRepository.update(raffle.id, { raffle_status: true });
+      }
+    }
+  }
+
+  async selectWinners(address: string) {
+    const privateKey = this.configService.get<string>('PRIVATE_KEY');
+    const wallet = new ethers.Wallet(privateKey, this.provider);
+    const contract = new ethers.Contract(address, this.abi, wallet);
+
+    const tx = await contract.selectWinners();
+    await tx.wait();
 
     return tx;
   }

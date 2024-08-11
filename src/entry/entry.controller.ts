@@ -9,13 +9,13 @@ import {ApiOperation, ApiTags} from "@nestjs/swagger";
 export class EntryController {
     constructor(private entryService: EntryService) {}
 
-    @ApiOperation({ summary: '응모 생성', description: '새로운 응모 항목을 생성합니다.'})
+    @ApiOperation({ summary: '응모 생성', description: '추첨에 응모를 생성합니다.'})
     @Post()
     async create(@Body() createEntryDto: CreateEntryDto): Promise<{ systemCode: number, message: string }> {
         await this.entryService.create(createEntryDto);
         return {
             systemCode: HttpStatus.CREATED,
-            message: "추첨이 생성되었습니다."
+            message: "응모가 완료되었습니다."
         }
     }
 
