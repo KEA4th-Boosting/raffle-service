@@ -9,6 +9,7 @@ import { Raffle } from './raffle/entities/raffle.entity';
 import { Winner } from './winner/entities/winner.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import {ScheduleModule} from "@nestjs/schedule";
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ConfigModule } from '@nestjs/config';
       entities: [Entry, Raffle, Winner],
       synchronize: Boolean(process.env.DB_SYNCHRONIZE),
     }),
+    ScheduleModule.forRoot(),
     EntryModule,
     RaffleModule,
     WinnerModule,
