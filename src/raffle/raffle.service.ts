@@ -11,6 +11,7 @@ import {LessThanOrEqual, MoreThanOrEqual, Repository} from 'typeorm';
 import { Raffle } from './entities/raffle.entity';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
 import { UpdateRaffleDto } from "./dto/update-raffle.dto";
+import {EnterRaffleDto} from "./dto/enter-raffle.dto";
 
 @Injectable()
 export class RaffleService {
@@ -129,7 +130,7 @@ export class RaffleService {
   async getRaffle(address: string) {
     const contract = new ethers.Contract(address, this.abi, this.provider);
 
-    await this.selectWinners(address);
+    //await this.selectWinners(address);
 
     const raffleDate = (await contract.getRaffleDate()).toString();
     const blockTimestamp = (await contract.getCurrentTimestamp()).toString();
@@ -140,6 +141,7 @@ export class RaffleService {
     const participants = await contract.getParticipants();
     const winners = await contract.getWinners();
     const waitingList = await contract.getWaitingList();
+    const entry = (await contract.getEntryMap('1')).toString();
 
     return {
       raffleDate,
@@ -151,6 +153,7 @@ export class RaffleService {
       participants,
       winners,
       waitingList,
+      entry,
     };
   }
 
@@ -161,6 +164,24 @@ export class RaffleService {
 
     const tx = await contract.selectWinners();
     await tx.wait();
+
+    return tx;
+  }
+
+  async enterRaffle(enterRaffleDto: EnterRaffleDto) {
+    const raffle = await this.findOne(enterRaffleDto.raffle_id);
+
+    const privateKey = this.configService.get<string>('PRIVATE_KEY');
+    const wallet = new ethers.Wallet(privateKey, this.provider);
+
+    const contract = new ethers.Contract(raffle.contract_address, this.abi, wallet);
+
+    const tx = await contract.enterRaffle(enterRaffleDto.user_id.toString(), enterRaffleDto.raffle_index);
+    await tx.wait();
+    //const tx = await contract.sendTransaction({
+      //to: raffle.contract_address,
+      //value: enterRaffleDto.raffle_index,
+    //});
 
     return tx;
   }

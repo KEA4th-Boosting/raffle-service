@@ -15,12 +15,14 @@ export class EntryService {
     ) {}
 
     async create(createEntryDto: CreateEntryDto): Promise<Entry> {
-        const { raffle_id } = createEntryDto;
+        const { raffle_id, user_id, raffle_index } = createEntryDto;
 
         const isOngoing = await this.raffleService.isRaffleOngoing(raffle_id);
         if (!isOngoing) {
             throw new Error('추첨이 진행중이지 않습니다.');
         }
+
+        await this.raffleService.enterRaffle(createEntryDto);
 
         const newEntry = this.entryRepository.create(createEntryDto);
         return await this.entryRepository.save(newEntry);
