@@ -14,8 +14,8 @@ export class CreateEntryDto {
     @ApiProperty({ description: '유저 아이디', example: '1' })
     readonly user_id: number;
 
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
-    @ApiProperty({ description: '사용자 추첨 지수', example: '102.5' })
+    @ApiProperty({ description: '사용자 추첨 지수', example: '102' })
     readonly raffle_index: number;
 }
