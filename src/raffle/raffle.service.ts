@@ -61,11 +61,9 @@ export class RaffleService {
     const raffle = await this.raffleRepository.findOne({
       where: { id: raffleId },
     });
-
     if (!raffle) {
       throw new NotFoundException('추첨을 찾지 못했습니다.');
     }
-
     return raffle;
   }
 
@@ -92,8 +90,9 @@ export class RaffleService {
   }
 
   async update(raffleId: number, updateRaffleDto: UpdateRaffleDto): Promise<Raffle> {
+    await this.findOne(raffleId);
     await this.raffleRepository.update(raffleId, updateRaffleDto);
-    return this.findOne(raffleId);
+    return await this.findOne(raffleId);
   }
 
   async remove(raffleId: number): Promise<number> {
@@ -103,20 +102,16 @@ export class RaffleService {
 
   async isRaffleOngoing(raffleId: number): Promise<boolean> {
     const raffle = await this.findOne(raffleId);
-
     const now = new Date();
     const isOngoing =
         now >= raffle.entry_start_date && now <= raffle.entry_end_date;
-
     return isOngoing;
   }
 
   async deployRaffle(createRaffleDto: CreateRaffleDto):Promise<string> {
     const privateKey = this.configService.get<string>('PRIVATE_KEY');
     const wallet = new ethers.Wallet(privateKey, this.provider);
-
     const raffleDateTimestamp = Math.floor(createRaffleDto.raffle_date.getTime() / 1000);
-
     const raffleFactory = new ethers.ContractFactory(this.abi, this.bytecode, wallet);
     const contract = await raffleFactory.deploy(
         createRaffleDto.raffle_name,
