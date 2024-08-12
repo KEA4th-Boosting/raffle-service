@@ -29,6 +29,7 @@ export class RaffleService {
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => EntryService))
     private entryService: EntryService,
+    @Inject(forwardRef(() => WinnerService))
     private winnerService: WinnerService,
   ) {
     this.provider = new JsonRpcProvider(this.configService.get<string>('ALL_THAT_NODE_URL'));
