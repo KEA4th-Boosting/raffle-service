@@ -8,11 +8,6 @@ import {
 } from 'class-validator';
 import {ApiProperty} from "@nestjs/swagger";
 
-export enum CancellationNoShow {
-    CANCELLATION = 'cancellation',
-    NOSHOW = 'noshow'
-}
-
 export class CreateWinnerDto {
     @IsInt()
     @IsNotEmpty()

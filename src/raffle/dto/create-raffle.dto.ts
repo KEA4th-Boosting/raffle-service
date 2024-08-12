@@ -32,13 +32,13 @@ export class CreateRaffleDto {
   @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
-  @ApiProperty({ description: '체크인 날짜', example: '2024-07-31T12:08:24.228Z' })
+  @ApiProperty({ description: '체크인 날짜', example: '2024-07-31' })
   check_in: Date;
 
   @Type(() => Date)
   @IsDate()
   @IsNotEmpty()
-  @ApiProperty({ description: '체크아웃 날짜', example: '2024-07-31T12:08:24.228Z' })
+  @ApiProperty({ description: '체크아웃 날짜', example: '2024-07-31' })
   check_out: Date;
 
   @IsInt()
