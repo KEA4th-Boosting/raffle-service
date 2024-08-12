@@ -4,7 +4,9 @@ contract Raffle {
     uint256 public totalIndex;
     address public owner;
     string[] public participants;
+    string[] public participantsList;
     mapping(string => uint256) public entries;
+    mapping(string => uint256) public entriesList;
 
     string public raffleName;
     uint256 public raffleDate;
@@ -21,12 +23,14 @@ contract Raffle {
         owner = msg.sender;
     }
 
-    function enterRaffle(string memory userId, uint256 raffleIndex) external {
+    function enterRaffle(string memory entryId, uint256 raffleIndex) external {
         require(block.timestamp < raffleDate, "This raffle is over.");
-        if (entries[userId] == 0) {
-            participants.push(userId);
+        if (entries[entryId] == 0) {
+            participants.push(entryId);
+            participantsList.push(entryId);
         }
-        entries[userId] = raffleIndex;
+        entries[entryId] = raffleIndex;
+        entriesList[entryId] = raffleIndex;
         totalIndex += raffleIndex;
     }
 
@@ -38,7 +42,6 @@ contract Raffle {
         uint256 participantsCount = participants.length;
         uint256 selectedCount = 0;
 
-        // Seed for randomness
         uint256 seed = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty)));
 
         while (selectedCount < winnerCnt && participantsCount > 0) {
@@ -118,11 +121,19 @@ contract Raffle {
     }
 
     function getEntries() external view returns (string[] memory, uint256[] memory) {
-        uint256 len = participants.length;
+        uint256 len = participantsList.length;
         uint256[] memory indexes = new uint256[](len);
         for (uint256 i = 0; i < len; i++) {
-            indexes[i] = entries[participants[i]];
+            indexes[i] = entriesList[participantsList[i]];
         }
-        return (participants, indexes);
+        return (participantsList, indexes);
+    }
+
+    function getWinnerCnt() external view returns (uint256) {
+        return winnerCnt;
+    }
+
+    function getRaffleWaitingCnt() external view returns (uint256) {
+        return raffleWaitingCnt;
     }
 }

@@ -13,8 +13,8 @@ export class EnterRaffleDto {
 
     @IsInt()
     @IsNotEmpty()
-    @ApiProperty({description: '유저 아이디', example: '1'})
-    readonly user_id: number;
+    @ApiProperty({description: '응모 아이디', example: '1'})
+    readonly entry_id: number;
 
     @IsNumber()
     @IsNotEmpty()

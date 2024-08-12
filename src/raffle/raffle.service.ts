@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {forwardRef, Inject, Injectable, NotFoundException} from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -12,7 +12,10 @@ import {LessThanOrEqual, MoreThanOrEqual, Repository} from 'typeorm';
 import { Raffle } from './entities/raffle.entity';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
 import { UpdateRaffleDto } from "./dto/update-raffle.dto";
-import {EnterRaffleDto} from "./dto/enter-raffle.dto";
+import { EnterRaffleDto } from "./dto/enter-raffle.dto";
+import { CreateWinnerDto } from "../winner/dto/create-winner.dto";
+import { WinnerService } from "../winner/winner.service";
+import { EntryService } from "../entry/entry.service";
 
 @Injectable()
 export class RaffleService {
@@ -23,7 +26,10 @@ export class RaffleService {
   constructor(
     @InjectRepository(Raffle)
     private raffleRepository: Repository<Raffle>,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    @Inject(forwardRef(() => EntryService))
+    private entryService: EntryService,
+    private winnerService: WinnerService,
   ) {
     this.provider = new JsonRpcProvider(this.configService.get<string>('ALL_THAT_NODE_URL'));
     this.loadContract()
@@ -144,8 +150,9 @@ export class RaffleService {
     const totalIndex = (await contract.totalIndex()).toString();
     const winners = await contract.getWinners();
     const waitingList = await contract.getWaitingList();
+    const winnerCnt = (await contract.getWinnerCnt()).toString();
+    const raffleWaitingCnt = (await contract.getRaffleWaitingCnt()).toString()
     const [participants, indexes] = await contract.getEntries();
-
     const parsedEntries = participants.map((participant: string, i: number) => ({
       participant,
       index: indexes[i].toString(),
@@ -158,6 +165,8 @@ export class RaffleService {
       winners,
       waitingList,
       entries: parsedEntries,
+      winnerCnt,
+      raffleWaitingCnt,
     };
   }
 
@@ -169,13 +178,13 @@ export class RaffleService {
 
     const contract = new ethers.Contract(raffle.contract_address, this.abi, wallet);
 
-    const tx = await contract.enterRaffle(enterRaffleDto.user_id.toString(), enterRaffleDto.raffle_index);
+    const tx = await contract.enterRaffle(enterRaffleDto.entry_id.toString(), enterRaffleDto.raffle_index);
     await tx.wait();
 
     return tx;
   }
 
-  @Cron(CronExpression.EVERY_10_SECONDS)
+  @Cron(CronExpression.EVERY_MINUTE)
   async progressRaffle() {
     const raffles = await this.raffleRepository.find({
       where: {
@@ -184,15 +193,40 @@ export class RaffleService {
     });
 
     const currentTime = Date.now();
-    //console.log(currentTime)
 
     for (const raffle of raffles) {
-      //console.log(raffle.raffle_date.getTime())
       if (raffle.raffle_date.getTime() <= currentTime) {
-        console.log(raffle.raffle_date.getTime(), currentTime);
         await this.selectWinners(raffle.contract_address);
+
+        const raffleResult = await this.getRaffle(raffle.contract_address);
+        const winners = raffleResult.winners
+        const waitingList = raffleResult.waitingList
+
+        for (let i = 0; i < winners.length; i++) {
+          const entry = await this.entryService.findOne(Number(winners[i]));
+          const createWinnerDto: CreateWinnerDto = {
+            raffle_id: raffle.id,
+            entry_id: entry.id,
+            user_id: entry.user_id,
+            waiting_number: 0,
+            benefit_value: raffle.discount_rate * 0,
+          };
+          await this.winnerService.create(createWinnerDto);
+        }
+
+        for (let i = 0; i < waitingList.length; i++) {
+          const entry = await this.entryService.findOne(Number(waitingList[i]));
+          const createWinnerDto: CreateWinnerDto = {
+            raffle_id: raffle.id,
+            entry_id: entry.id,
+            user_id: entry.user_id,
+            waiting_number: i + 1,
+            benefit_value: raffle.discount_rate * 0,
+          };
+          await this.winnerService.create(createWinnerDto);
+        }
+
         raffle.raffle_status = true;
-        //await this.raffleRepository.save(raffle);
         await this.raffleRepository.update(raffle.id, { raffle_status: true });
       }
     }
