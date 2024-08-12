@@ -1,15 +1,20 @@
-import {Injectable, NotFoundException} from '@nestjs/common';
+import {forwardRef, Inject, Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {Winner} from "./entities/winner.entity";
 import {Repository} from "typeorm";
 import {CreateWinnerDto} from "./dto/create-winner.dto";
 import {UpdateWinnerDto} from "./dto/update-winner.dto";
+import {RaffleService} from "../raffle/raffle.service";
+import {HttpService} from "@nestjs/axios";
 
 @Injectable()
 export class WinnerService {
     constructor(
         @InjectRepository(Winner)
         private winnerRepository: Repository<Winner>,
+        @Inject(forwardRef(() => RaffleService))
+        private raffleService: RaffleService,
+        private readonly httpService: HttpService,
     ) {}
 
     async create(createWinnerDto: CreateWinnerDto): Promise<Winner> {
@@ -37,8 +42,29 @@ export class WinnerService {
         return winners;
     }
 
+    async findOneByEntryId(entryId: number): Promise<Winner | null> {
+        const winner = await this.winnerRepository.findOne({
+            where: { entry_id: entryId },
+        });
+        return winner || null;
+    }
+
     async update(winnerId: number, updateWinnerDto: UpdateWinnerDto): Promise<Winner> {
-        await this.winnerRepository.update(winnerId, updateWinnerDto);
+        const currentTime = new Date();
+        const updatedWinner = {
+            ...updateWinnerDto,
+            cancellation_noshow_time: currentTime,
+        };
+
+        await this.winnerRepository.update(winnerId, updatedWinner);
+
+        const winner = await this.findOne(winnerId);
+        let updatedWaitingNumber = 1;
+        if (winner.waiting_number !== null && winner.waiting_number >= 1) {
+            updatedWaitingNumber = winner.waiting_number + 1;
+        }
+
+        await this.raffleService.update(winner.raffle_id, {current_waiting_number: updatedWaitingNumber})
         return this.findOne(winnerId);
     }
 }

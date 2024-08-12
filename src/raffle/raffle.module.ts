@@ -10,7 +10,7 @@ import { WinnerModule } from "../winner/winner.module";
   imports: [
       TypeOrmModule.forFeature([Raffle]),
       forwardRef(() => EntryModule),
-      WinnerModule,
+      forwardRef(() => WinnerModule),
   ],
   exports: [RaffleService],
   controllers: [RaffleController],
