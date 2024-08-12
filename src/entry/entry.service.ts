@@ -5,7 +5,6 @@ import { Repository } from 'typeorm';
 import { Entry } from "./entities/entry.entity";
 import { CreateEntryDto } from "./dto/create-entry.dto";
 import {RaffleService} from "../raffle/raffle.service";
-import {CreateWinnerDto} from "../winner/dto/create-winner.dto";
 import {EnterRaffleDto} from "../raffle/dto/enter-raffle.dto";
 
 @Injectable()

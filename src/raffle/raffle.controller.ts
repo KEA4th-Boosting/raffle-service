@@ -3,7 +3,6 @@ import { Raffle } from './entities/raffle.entity';
 import { RaffleService } from './raffle.service';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
 import {ApiOperation, ApiTags} from "@nestjs/swagger";
-import {Entry} from "../entry/entities/entry.entity";
 import {UpdateRaffleDto} from "./dto/update-raffle.dto";
 
 @ApiTags('raffle')

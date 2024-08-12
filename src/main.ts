@@ -15,6 +15,14 @@ async function bootstrap() {
       .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
+  app.enableCors();
+  /*
+  app.enableCors({
+    origin: ['https://example1.com', 'https://example2.com'], // 허용할 도메인
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE', // 허용할 HTTP 메서드
+    credentials: true, // 자격 증명(쿠키 등) 허용 여부
+  });
+  */
   await app.listen(3000);
 }
 bootstrap();
