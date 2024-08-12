@@ -20,4 +20,4 @@ COPY dist ./dist
 EXPOSE 3000
 
 # Define environment variables and entry point
-ENTRYPOINT ["sh", "-c", "NODE_ENV=${NODE_ENV} APPLICATION_ROLE=${APPLICATION_ROLE} node dist/main.js"]
+ENTRYPOINT ["sh", "-c", "NODE_ENV=${node_env} APPLICATION_ROLE=${Aapplication_role} node dist/main.js"]
