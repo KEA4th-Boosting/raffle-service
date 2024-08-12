@@ -3,6 +3,7 @@ import {EntryService} from "./entry.service";
 import {Entry} from "./entities/entry.entity";
 import {CreateEntryDto} from "./dto/create-entry.dto";
 import {ApiOperation, ApiTags} from "@nestjs/swagger";
+import {UserEntryDto} from "./dto/user-entry.dto";
 
 @ApiTags('entry')
 @Controller('entry')
@@ -30,18 +31,18 @@ export class EntryController {
         }
     }
 
-    /*
+
     @ApiOperation({ summary: '개인이 응모한 내역 조회', description: '본인이 현재까지 응모한 내역들을 최신순으로 가져옵니다.'})
     @Get('/user/:userId')
-    async findUserEntries(@Param('userId') userId: number): Promise<{ systemCode: number, message: string, data: Entry[] }> {
-        const entry: Entry = await this.entryService.findUserEntries(userId);
+    async findUserEntries(@Param('userId') userId: number): Promise<{ systemCode: number, message: string, data: UserEntryDto[] }> {
+        const userEntries: UserEntryDto[] = await this.entryService.findUserEntries(userId);
         return {
             systemCode: HttpStatus.OK,
             message: "응모 조회에 성공하였습니다.",
-            data: entry
+            data: userEntries
         }
     }
-    */
+
 
     @ApiOperation({ summary: '응모 삭제', description: '응모를 삭제합니다.' })
     @Delete('/:entryId')

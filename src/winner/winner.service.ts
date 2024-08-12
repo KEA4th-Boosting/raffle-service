@@ -5,6 +5,7 @@ import {Repository} from "typeorm";
 import {CreateWinnerDto} from "./dto/create-winner.dto";
 import {UpdateWinnerDto} from "./dto/update-winner.dto";
 import {RaffleService} from "../raffle/raffle.service";
+import {HttpService} from "@nestjs/axios";
 
 @Injectable()
 export class WinnerService {
@@ -13,6 +14,7 @@ export class WinnerService {
         private winnerRepository: Repository<Winner>,
         @Inject(forwardRef(() => RaffleService))
         private raffleService: RaffleService,
+        private readonly httpService: HttpService,
     ) {}
 
     async create(createWinnerDto: CreateWinnerDto): Promise<Winner> {
@@ -40,6 +42,13 @@ export class WinnerService {
         return winners;
     }
 
+    async findOneByEntryId(entryId: number): Promise<Winner | null> {
+        const winner = await this.winnerRepository.findOne({
+            where: { entry_id: entryId },
+        });
+        return winner || null;
+    }
+
     async update(winnerId: number, updateWinnerDto: UpdateWinnerDto): Promise<Winner> {
         const currentTime = new Date();
         const updatedWinner = {
@@ -55,7 +64,7 @@ export class WinnerService {
             updatedWaitingNumber = winner.waiting_number + 1;
         }
 
-        await this.raffleService.update(winner.raffle_id, { current_waiting_number: updatedWaitingNumber })
+        await this.raffleService.update(winner.raffle_id, {current_waiting_number: updatedWaitingNumber})
         return this.findOne(winnerId);
     }
 }

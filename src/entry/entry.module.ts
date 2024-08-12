@@ -4,12 +4,15 @@ import {Entry} from "./entities/entry.entity";
 import {EntryController} from "./entry.controller";
 import {EntryService} from "./entry.service";
 import {RaffleModule} from "../raffle/raffle.module";
-import {RaffleService} from "../raffle/raffle.service";
+import {HttpModule} from "@nestjs/axios";
+import {WinnerModule} from "../winner/winner.module";
 
 @Module({
     imports: [
         TypeOrmModule.forFeature([Entry]),
         forwardRef(() => RaffleModule),
+        WinnerModule,
+        HttpModule,
     ],
     exports: [EntryService],
     controllers: [EntryController],
