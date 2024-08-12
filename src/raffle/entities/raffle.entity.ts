@@ -58,6 +58,9 @@ export class Raffle {
   @Column({ type: 'datetime', nullable: false, unique: false })
   entry_end_date: Date;
 
+  @Column({ type: 'varchar', nullable: false, unique: true })
+  contract_address: string;
+
   @CreateDateColumn()
   created_date: Date;
 

@@ -80,11 +80,9 @@ export class RaffleController {
     };
   }
 
-
-  /*
-  @Put()
-  async raffle(@Body() raffleRaffleDto: RaffleRaffleDto): Promise<Raffle> {
-    return await this.raffleService.raffle(raffleRaffleDto);
+  @ApiOperation({ summary: '컨트랙트 조회', description: '조회합니다.'})
+  @Get('/deploy/:address')
+  async getRaffle(@Param('address') address: string) {
+      return await this.raffleService.getRaffle(address);
   }
-   */
 }
