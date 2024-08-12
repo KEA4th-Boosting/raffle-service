@@ -11,8 +11,6 @@ import {UpdateWinnerDto} from "./dto/update-winner.dto";
 export class WinnerController {
     constructor(private winnerService: WinnerService) {}
 
-    @ApiOperation({ summary: '당첨 생성', description: '당첨 내역을 생성합니다.'})
-    @Post()
     async create(@Body() createWinnerDto: CreateWinnerDto): Promise<{ systemCode: number, message: string }> {
         await this.winnerService.create(createWinnerDto);
         return {
@@ -29,6 +27,17 @@ export class WinnerController {
             systemCode: HttpStatus.OK,
             message: "당첨 조회에 성공하였습니다.",
             data: winner
+        }
+    }
+
+    @ApiOperation({ summary: '추첨의 당첨된 내역 조회', description: '추첨 아이디로 당첨된 내역들을 조회합니다.'})
+    @Get('/raffle/:raffleId')
+    async getWinners(@Param('raffleId') raffleId: number): Promise<{ systemCode: number, message: string, data: Winner[] }> {
+        const winners: Winner[] = await this.winnerService.getWinners(raffleId);
+        return {
+            systemCode: HttpStatus.OK,
+            message: "당첨 조회에 성공하였습니다.",
+            data: winners,
         }
     }
 

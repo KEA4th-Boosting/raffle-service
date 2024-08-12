@@ -29,6 +29,14 @@ export class WinnerService {
         return winner;
     }
 
+    async getWinners(raffleId: number): Promise<Winner[]> {
+        const winners = await this.winnerRepository.find({ where: { raffle_id: raffleId } });
+        if (winners.length === 0) {
+            throw new NotFoundException('해당 추첨에 당첨된 응모가 없습니다.');
+        }
+        return winners;
+    }
+
     async update(winnerId: number, updateWinnerDto: UpdateWinnerDto): Promise<Winner> {
         await this.winnerRepository.update(winnerId, updateWinnerDto);
         return this.findOne(winnerId);

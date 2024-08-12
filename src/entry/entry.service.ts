@@ -1,16 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import {forwardRef, Inject, Injectable} from '@nestjs/common';
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from 'typeorm';
 
 import { Entry } from "./entities/entry.entity";
 import { CreateEntryDto } from "./dto/create-entry.dto";
 import {RaffleService} from "../raffle/raffle.service";
+import {CreateWinnerDto} from "../winner/dto/create-winner.dto";
+import {EnterRaffleDto} from "../raffle/dto/enter-raffle.dto";
 
 @Injectable()
 export class EntryService {
     constructor(
         @InjectRepository(Entry)
         private entryRepository: Repository<Entry>,
+        @Inject(forwardRef(() => RaffleService))
         private raffleService: RaffleService,
     ) {}
 
@@ -23,7 +26,14 @@ export class EntryService {
         }
 
         const newEntry = this.entryRepository.create(createEntryDto);
-        return await this.entryRepository.save(newEntry);
+        await this.entryRepository.save(newEntry);
+
+        const enterRaffleDto: EnterRaffleDto = {
+            raffle_id: createEntryDto.raffle_id,
+            entry_id: newEntry.id,
+            raffle_index: createEntryDto.raffle_index,
+        }
+        return await this.raffleService.enterRaffle(enterRaffleDto);
     }
 
     async findOne(entryId: number): Promise<Entry> {
@@ -33,6 +43,10 @@ export class EntryService {
             },
         });
     }
+
+    //async findUserEntries(userId: number): Promise<>{
+
+    //}
 
     async remove(entryId: number): Promise<number> {
         await this.entryRepository.delete(entryId);
