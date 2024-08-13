@@ -96,6 +96,8 @@ export class EntryService {
         return results;
     }
 
+    //async getCompetition(entryId: number): Promise<Entry> {}
+
     async remove(entryId: number): Promise<number> {
         await this.entryRepository.delete(entryId);
         return entryId;
