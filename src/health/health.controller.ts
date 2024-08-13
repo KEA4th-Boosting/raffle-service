@@ -1,19 +1,20 @@
 import { Controller, Get } from '@nestjs/common';
-import { HealthCheckService, HttpHealthIndicator, HealthCheck } from '@nestjs/terminus';
+import { HealthCheckService, HealthCheck, TypeOrmHealthIndicator, DiskHealthIndicator } from '@nestjs/terminus';
 
 @Controller('health')
 export class HealthController {
     constructor(
-        private health: HealthCheckService,
-        private http: HttpHealthIndicator,
+      private health: HealthCheckService,
+      private db: TypeOrmHealthIndicator, // DB 상태 체크
+      private disk: DiskHealthIndicator,  // Disk 상태 체크
     ) {}
 
     @Get('liveness')
     @HealthCheck()
     checkLiveness() {
         return this.health.check([
-            // 간단한 헬스 체크
-            async () => this.http.pingCheck('liveness', 'http://localhost:3000/health/liveness'),
+            async () => this.db.pingCheck('database'), // DB 연결 상태 확인
+            async () => this.disk.checkStorage('disk', { path: '/', thresholdPercent: 0.9 }), // 디스크 상태 확인
         ]);
     }
 
@@ -21,8 +22,8 @@ export class HealthController {
     @HealthCheck()
     checkReadiness() {
         return this.health.check([
-            // 필요에 따라 다른 서비스나 데이터베이스를 체크
-            async () => this.http.pingCheck('readiness', 'http://localhost:3000/health/readiness'),
+            async () => this.db.pingCheck('database'), // DB 연결 상태 확인
+            async () => this.disk.checkStorage('disk', { path: '/', thresholdPercent: 0.9 }), // 디스크 상태 확인
         ]);
     }
 }
