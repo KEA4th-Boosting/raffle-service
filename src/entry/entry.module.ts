@@ -11,7 +11,7 @@ import {WinnerModule} from "../winner/winner.module";
     imports: [
         TypeOrmModule.forFeature([Entry]),
         forwardRef(() => RaffleModule),
-        WinnerModule,
+        forwardRef(() => WinnerModule),
         HttpModule,
     ],
     exports: [EntryService],
