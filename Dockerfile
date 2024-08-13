@@ -19,5 +19,5 @@ COPY dist ./dist
 # Expose the port the app runs on
 EXPOSE 3000
 
-# Define environment variables and entry point
-ENTRYPOINT ["sh", "-c", "NODE_ENV=${node_env} APPLICATION_ROLE=${application_role} node dist/src/main.js"]
+# Define entry point, environment variables are passed from Kubernetes
+CMD ["node", "dist/src/main.js"]
