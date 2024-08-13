@@ -10,6 +10,7 @@ import { Winner } from './winner/entities/winner.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import {ScheduleModule} from "@nestjs/schedule";
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import {ScheduleModule} from "@nestjs/schedule";
     EntryModule,
     RaffleModule,
     WinnerModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
