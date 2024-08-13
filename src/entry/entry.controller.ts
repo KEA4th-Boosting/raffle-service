@@ -1,4 +1,4 @@
-import {Body, Controller, Delete, Get, HttpStatus, Param, Post, Put} from '@nestjs/common';
+import {Body, Controller, Delete, Get, HttpStatus, Param, Post, Put, Query} from '@nestjs/common';
 import {EntryService} from "./entry.service";
 import {Entry} from "./entities/entry.entity";
 import {CreateEntryDto} from "./dto/create-entry.dto";
@@ -43,18 +43,19 @@ export class EntryController {
         }
     }
 
-    /*
-    @ApiOperation({ summary: '경쟁률 조회', description: '특정 추첨의 경쟁률을 조회합니다.'})
+    @ApiOperation({ summary: '유저 당첨 확률 조회', description: '특정 추첨의 유저 본인의 당첨 확률을 조회합니다.'})
     @Get('/competition/:raffleId')
-    async getCompetition(@Param('raffleId') raffleId: number): Promise<{ systemCode: number, message: string, data: number }> {
-        const competition = await this.entryService.getCompetition(raffleId);
+    async getCompetition(
+        @Param('raffleId') raffleId: number,
+        @Query('userId') userId: number
+    ): Promise<{ systemCode: number, message: string, data: number }> {
+        const competition = await this.entryService.getCompetition(raffleId, userId);
         return {
             systemCode: HttpStatus.OK,
-            message: "경쟁률 조회에 성공하였습니다.",
+            message: "확률 조회에 성공하였습니다.",
             data: competition
         }
     }
-    */
 
     @ApiOperation({ summary: '응모 삭제', description: '응모를 삭제합니다.' })
     @Delete('/:entryId')
