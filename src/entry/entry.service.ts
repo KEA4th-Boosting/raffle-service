@@ -37,6 +37,10 @@ export class EntryService {
         const newEntry = this.entryRepository.create(createEntryDto);
         await this.entryRepository.save(newEntry);
 
+        const raffle = await this.raffleService.findOne(raffle_id);
+        const updateRaffleDto = { participant_cnt: raffle.participant_cnt + 1 };
+        await this.raffleService.update(raffle_id, updateRaffleDto);
+
         const enterRaffleDto: EnterRaffleDto = {
             raffle_id: createEntryDto.raffle_id,
             entry_id: newEntry.id,
@@ -96,7 +100,16 @@ export class EntryService {
         return results;
     }
 
-    //async getCompetition(entryId: number): Promise<Entry> {}
+    async getCompetition(raffleId: number, userId: number): Promise<number> {
+        const entries:Entry[] = await this.entryRepository.find({ where: { raffle_id: raffleId } });
+        const totalRaffleIndex:number = entries.reduce((sum, entry) => sum + entry.raffle_index, 0);
+        const userEntry:Entry = entries.find(entry => entry.user_id === userId);
+        if (!userEntry) {
+            throw new Error('유저가 해당 추첨에 응모한 내역이 없습니다.');
+        }
+
+        return (userEntry.raffle_index / totalRaffleIndex) * 100;
+    }
 
     async remove(entryId: number): Promise<number> {
         await this.entryRepository.delete(entryId);
