@@ -9,8 +9,8 @@ pipeline {
         GITHUB_URL = 'https://github.com/KEA4th-Boosting/raffle-service.git'
         APP_VERSION = '1.1.1'
         BUILD_DATE = sh(script: "echo `date +%y%m%d.%d%H%M`", returnStdout: true).trim()
-        TAG = "${APP_VERSION}"
-//         TAG = "${APP_VERSION}-${BUILD_DATE}"
+//         TAG = "${APP_VERSION}"
+        TAG = "${APP_VERSION}-${BUILD_DATE}"
         IMAGE_NAME = 'raffle-service'
         SERVICE_NAME = 'raffle-service'
         KAKAO_PROJECT_NAME = 'rafvacation'
