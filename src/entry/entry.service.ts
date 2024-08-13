@@ -22,6 +22,7 @@ export class EntryService {
         private readonly httpService: HttpService,
         @Inject(forwardRef(() => RaffleService))
         private raffleService: RaffleService,
+        @Inject(forwardRef(() => WinnerService))
         private winnerService: WinnerService,
     ) {}
 

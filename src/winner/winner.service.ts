@@ -1,4 +1,4 @@
-import {forwardRef, Inject, Injectable, NotFoundException} from '@nestjs/common';
+import {forwardRef, HttpException, HttpStatus, Inject, Injectable, NotFoundException} from '@nestjs/common';
 import {InjectRepository} from "@nestjs/typeorm";
 import {Winner} from "./entities/winner.entity";
 import {Repository} from "typeorm";
@@ -6,15 +6,22 @@ import {CreateWinnerDto} from "./dto/create-winner.dto";
 import {UpdateWinnerDto} from "./dto/update-winner.dto";
 import {RaffleService} from "../raffle/raffle.service";
 import {HttpService} from "@nestjs/axios";
+import {UserWinnerDto} from "./dto/user-winner.dto";
+import {ConfigService} from "@nestjs/config";
+import {EntryService} from "../entry/entry.service";
+import {lastValueFrom} from "rxjs";
 
 @Injectable()
 export class WinnerService {
     constructor(
         @InjectRepository(Winner)
         private winnerRepository: Repository<Winner>,
+        private readonly configService: ConfigService,
+        private readonly httpService: HttpService,
         @Inject(forwardRef(() => RaffleService))
         private raffleService: RaffleService,
-        private readonly httpService: HttpService,
+        @Inject(forwardRef(() => EntryService))
+        private entryService: EntryService,
     ) {}
 
     async create(createWinnerDto: CreateWinnerDto): Promise<Winner> {
@@ -40,6 +47,50 @@ export class WinnerService {
             throw new NotFoundException('해당 추첨에 당첨된 응모가 없습니다.');
         }
         return winners;
+    }
+
+    async findUserWinners(userId: number): Promise<UserWinnerDto[]>{
+        const oneYearAgo = new Date();
+        oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+        const winners = await this.winnerRepository.find({
+            where: { user_id: userId },
+            order: { created_date: 'DESC' },
+        });
+
+        const productURL = this.configService.get<string>('PRODUCT_SERVICE_URL')
+        const results = await Promise.all(winners.map(async winner => {
+            const raffle = await this.raffleService.findOne(winner.raffle_id);
+            const entry = await this.entryService.findOne(winner.entry_id);
+            let roomDetails;
+            try {
+                const response = await lastValueFrom(
+                    this.httpService.get(`${productURL}/room/${raffle.accommodation_id}/${raffle.room_id}`)
+                );
+                roomDetails = response.data;
+            } catch (error) {
+                throw new HttpException('Unable to fetch room details', HttpStatus.BAD_REQUEST);
+            }
+            return {
+                id: winner.id,
+                raffle_id: winner.raffle_id,
+                entry_id: winner.entry_id,
+                user_id: winner.user_id,
+                check_in: raffle.check_in,
+                check_out: raffle.check_out,
+                entry_date: entry.created_date,
+                roomName: roomDetails.roomName,
+                roomType: roomDetails.roomType,
+                room_area: roomDetails.room_area,
+                standardPeople: roomDetails.standardPeople,
+                images: roomDetails.images.map(image => ({
+                    roomFileId: image.roomFileId,
+                    roomId: image.roomId,
+                    fileName: image.fileName,
+                    filePath: image.filePath,
+                })),
+            };
+        }));
+        return results;
     }
 
     async findOneByEntryId(entryId: number): Promise<Winner | null> {

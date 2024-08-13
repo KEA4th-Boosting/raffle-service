@@ -3,8 +3,8 @@ import {ApiOperation, ApiTags} from "@nestjs/swagger";
 import {WinnerService} from "./winner.service";
 import {Winner} from "./entities/winner.entity";
 import {CreateWinnerDto} from "./dto/create-winner.dto";
-import {UpdateRaffleDto} from "../raffle/dto/update-raffle.dto";
 import {UpdateWinnerDto} from "./dto/update-winner.dto";
+import {UserWinnerDto} from "./dto/user-winner.dto";
 
 @ApiTags('winner')
 @Controller('winner')
@@ -38,6 +38,17 @@ export class WinnerController {
             systemCode: HttpStatus.OK,
             message: "당첨 조회에 성공하였습니다.",
             data: winners,
+        }
+    }
+
+    @ApiOperation({ summary: '개인이 당첨된 내역 조회', description: '본인이 최근 1년 당첨된 내역들을 최신순으로 가져옵니다.'})
+    @Get('/user/:userId')
+    async findUserWinners(@Param('userId') userId: number): Promise<{ systemCode: number, message: string, data: UserWinnerDto[] }> {
+        const userWinners: UserWinnerDto[] = await this.winnerService.findUserWinners(userId);
+        return {
+            systemCode: HttpStatus.OK,
+            message: "당첨 조회에 성공하였습니다.",
+            data: userWinners
         }
     }
 
