@@ -61,11 +61,6 @@ export class CreateRaffleDto {
   @ApiProperty({ description: '할인율', example: '35.5' })
   readonly discount_rate: number;
 
-  @IsOptional()
-  @IsString()
-  @ApiProperty({ description: '컨트랙트 주소', example: '0x1234567890abcdef1234567890abcdef12345678' })
-  contract_address: string;
-
   @Type(() => Date)
   @IsDate()
   @IsNotEmpty()

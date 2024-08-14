@@ -71,9 +71,12 @@ export class RaffleService {
     createRaffleDto.entry_start_date = this.toKST(new Date(createRaffleDto.entry_start_date));
     createRaffleDto.entry_end_date = this.toKST(new Date(createRaffleDto.entry_end_date));
 
-    //const updateRaffleDto:UpdateRaffleDto =
+    const contractAddress: string = await this.deployRaffle(createRaffleDto);
+    const updateRaffleDto:UpdateRaffleDto = {
+      ...createRaffleDto,
+      contract_address: contractAddress,
+    }
 
-    createRaffleDto.contract_address = await this.deployRaffle(createRaffleDto);
     const newRaffle = this.raffleRepository.create(createRaffleDto);
     return await this.raffleRepository.save(newRaffle);
   }

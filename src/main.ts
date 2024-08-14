@@ -1,3 +1,5 @@
+process.env.TZ = 'Asia/Seoul';
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
@@ -13,11 +15,12 @@ async function bootstrap() {
       .setTitle('Raffle-swagger')
       .setDescription('raffle service API description')
       .setVersion('1.0')
-      .addServer('/raffle')
+      //.addServer('/raffle')
       .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
   app.enableCors();
+  app.setGlobalPrefix('raffle');
   /*
   app.enableCors({
     origin: ['https://example1.com', 'https://example2.com'], // 허용할 도메인
