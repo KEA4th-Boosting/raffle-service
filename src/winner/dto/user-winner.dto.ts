@@ -74,7 +74,7 @@ export class UserWinnerDto {
     @Type(() => Date)
     @IsDate()
     @IsNotEmpty()
-    @ApiProperty({ description: '응모 시간', example: '2024-07-31T12:08:24.228Z' })
+    @ApiProperty({ description: '응모 시간', example: '2024-07-31T12:08:24.228' })
     entry_date: Date;
 
     @IsString()

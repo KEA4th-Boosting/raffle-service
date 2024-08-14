@@ -25,10 +25,10 @@ export class Raffle {
   @Column({ type: 'datetime', nullable: false, unique: false })
   raffle_date: Date;
 
-  @Column({ type: 'datetime', nullable: false, unique: false })
+  @Column({ type: 'date', nullable: false, unique: false })
   check_in: Date;
 
-  @Column({ type: 'datetime', nullable: false, unique: false })
+  @Column({ type: 'date', nullable: false, unique: false })
   check_out: Date;
 
   @Column({ type: 'int', nullable: false, unique: false })
