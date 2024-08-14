@@ -54,6 +54,11 @@ export class UserWinnerDto {
     @ApiProperty({ description: '유저 아이디', example: '1' })
     readonly user_id: number;
 
+    @IsNumber()
+    @IsNotEmpty()
+    @ApiProperty({ description: '혜택 금액', example: '100000.0' })
+    benefit_value: number;
+
     @Type(() => Date)
     @IsDate()
     @IsNotEmpty()
