@@ -70,7 +70,7 @@ export class EntryService {
             let roomDetails;
             try {
                 const response = await lastValueFrom(
-                    this.httpService.get(`${productURL}/room/${raffle.accommodation_id}/${raffle.room_id}`)
+                    this.httpService.get(`${productURL}/room/${raffle.room_id}`)
                 );
                 roomDetails = response.data;
             } catch (error) {
