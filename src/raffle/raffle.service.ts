@@ -59,17 +59,12 @@ export class RaffleService {
     this.bytecode = contractOutput.evm.bytecode.object;
   }
 
-  private toKST(date: Date): Date {
-    const kstOffset = 9 * 60 * 60 * 1000; // 9시간
-    return new Date(date.getTime() - kstOffset);
-  }
-
   async create(createRaffleDto: CreateRaffleDto): Promise<Raffle> {
-    createRaffleDto.raffle_date = this.toKST(new Date(createRaffleDto.raffle_date));
-    createRaffleDto.check_in = this.toKST(new Date(createRaffleDto.check_in));
-    createRaffleDto.check_out = this.toKST(new Date(createRaffleDto.check_out));
-    createRaffleDto.entry_start_date = this.toKST(new Date(createRaffleDto.entry_start_date));
-    createRaffleDto.entry_end_date = this.toKST(new Date(createRaffleDto.entry_end_date));
+    createRaffleDto.raffle_date = new Date(createRaffleDto.raffle_date);
+    createRaffleDto.check_in = new Date(createRaffleDto.check_in);
+    createRaffleDto.check_out = new Date(createRaffleDto.check_out);
+    createRaffleDto.entry_start_date = new Date(createRaffleDto.entry_start_date);
+    createRaffleDto.entry_end_date = new Date(createRaffleDto.entry_end_date);
 
     const contractAddress: string = await this.deployRaffle(createRaffleDto);
     const updateRaffleDto:UpdateRaffleDto = {
@@ -77,7 +72,7 @@ export class RaffleService {
       contract_address: contractAddress,
     }
 
-    const newRaffle = this.raffleRepository.create(createRaffleDto);
+    const newRaffle = this.raffleRepository.create(updateRaffleDto);
     return await this.raffleRepository.save(newRaffle);
   }
 

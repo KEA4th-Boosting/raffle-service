@@ -60,7 +60,7 @@ export class UserEntryDto {
     @Type(() => Date)
     @IsDate()
     @IsNotEmpty()
-    @ApiProperty({ description: '추첨 일자', example: '2024-07-31T12:08:24.228Z' })
+    @ApiProperty({ description: '추첨 일자', example: '2024-07-31T12:08:24.228' })
     raffle_date: Date;
 
     @IsInt()
