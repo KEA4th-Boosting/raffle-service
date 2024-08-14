@@ -64,7 +64,7 @@ export class WinnerService {
             let roomDetails;
             try {
                 const response = await lastValueFrom(
-                    this.httpService.get(`${productURL}/room/${raffle.accommodation_id}/${raffle.room_id}`)
+                    this.httpService.get(`${productURL}/room/${raffle.room_id}`)
                 );
                 roomDetails = response.data;
             } catch (error) {
@@ -75,6 +75,7 @@ export class WinnerService {
                 raffle_id: winner.raffle_id,
                 entry_id: winner.entry_id,
                 user_id: winner.user_id,
+                benefit_value: winner.benefit_value,
                 check_in: raffle.check_in,
                 check_out: raffle.check_out,
                 entry_date: entry.created_date,
