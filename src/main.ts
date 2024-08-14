@@ -13,6 +13,7 @@ async function bootstrap() {
       .setTitle('Raffle-swagger')
       .setDescription('raffle service API description')
       .setVersion('1.0')
+      .setBasePath('/raffle')
       .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('swagger', app, document);
