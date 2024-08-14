@@ -8,7 +8,7 @@ import {ConfigService} from "@nestjs/config";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  app.setGlobalPrefix('raffle');
   //app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   const config = new DocumentBuilder()
@@ -18,9 +18,8 @@ async function bootstrap() {
       //.addServer('/raffle')
       .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('swagger', app, document);
+  SwaggerModule.setup('raffle/swagger', app, document);
   app.enableCors();
-  app.setGlobalPrefix('raffle');
   /*
   app.enableCors({
     origin: ['https://example1.com', 'https://example2.com'], // 허용할 도메인
