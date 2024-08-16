@@ -64,7 +64,7 @@ export class WinnerService {
             let roomDetails;
             try {
                 const response = await lastValueFrom(
-                    this.httpService.get(`${productURL}/room/${raffle.room_id}`)
+                    this.httpService.get(`${productURL}/product/room/${raffle.room_id}`)
                 );
                 roomDetails = response.data.data;
             } catch (error) {
