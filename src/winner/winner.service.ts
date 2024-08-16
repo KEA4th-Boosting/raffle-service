@@ -66,9 +66,9 @@ export class WinnerService {
                 const response = await lastValueFrom(
                     this.httpService.get(`${productURL}/room/${raffle.room_id}`)
                 );
-                roomDetails = response.data;
+                roomDetails = response.data.data;
             } catch (error) {
-                throw new HttpException('Unable to fetch room details', HttpStatus.BAD_REQUEST);
+                throw new HttpException('방 데이터 조회에 실패하였습니다.', HttpStatus.BAD_REQUEST);
             }
             return {
                 id: winner.id,
@@ -83,7 +83,7 @@ export class WinnerService {
                 roomType: roomDetails.roomType,
                 room_area: roomDetails.room_area,
                 standardPeople: roomDetails.standardPeople,
-                images: roomDetails.images.map(image => ({
+                images: (roomDetails.images || []).map(image => ({
                     roomFileId: image.roomFileId,
                     roomId: image.roomId,
                     fileName: image.fileName,
