@@ -16,6 +16,8 @@ pipeline {
         KAKAO_PROJECT_NAME = 'rafvacation'
         KAKAO_REPOSITORY_NAME = 'boosting'
         KAKAO_REGISTRY = "rafvacation.kr-central-2.kcr.dev"
+        SLACK_CREDENTIALS = 'slack-token' // Slack Webhook URL을 저장한 Jenkins 자격증명 ID
+        SLACK_CHANNEL = '#pipeline' // Slack 채널 이름
     }
 
     stages {
@@ -75,6 +77,39 @@ pipeline {
     }
 
     post {
+        success {
+            slackSend (
+                channel: "${SLACK_CHANNEL}",
+                color: "good",
+                message: "SUCCESS: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] was successful."
+            )
+            // credentialsId - 아까 설정한 웹훅 ID | variable - 변수명(마음대로 설정)
+            withCredentials([string(credentialsId: 'discord-token', variable: 'DISCORD')]) {
+                discordSend description: """
+                결과 : ${currentBuild.result}
+                실행 시간 : ${currentBuild.duration / 1000}s
+                """,
+                link: env.BUILD_URL, result: currentBuild.currentResult,
+                title: "${env.JOB_NAME} : ${currentBuild.displayName} 성공",
+                webhookURL: "$DISCORD"
+            }
+        }
+        failure {
+            slackSend (
+                channel: "${SLACK_CHANNEL}",
+                color: "danger",
+                message: "FAILURE: Job ${env.JOB_NAME} [${env.BUILD_NUMBER}] failed."
+            )
+            withCredentials([string(credentialsId: 'discord-token', variable: 'DISCORD')]) {
+                discordSend description: """
+                결과 : ${currentBuild.result}
+                실행 시간 : ${currentBuild.duration / 1000}s
+                """,
+                link: env.BUILD_URL, result: currentBuild.currentResult,
+                title: "${env.JOB_NAME} : ${currentBuild.displayName} 실패",
+                webhookURL: "$DISCORD"
+            }
+        }
         always {
             sh "docker logout"
             sh "unset ACCESS_KEY"
