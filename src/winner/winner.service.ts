@@ -68,15 +68,7 @@ export class WinnerService {
                 );
                 roomDetails = response.data.data;
             } catch (error) {
-                throw new HttpException({
-                        message: '방 데이터 조회에 실패하였습니다.',
-                        details: {
-                            message: error.message,
-                            status: error.response?.status,
-                            data: error.response?.data,
-                        },
-                    },
-                    HttpStatus.BAD_REQUEST);
+                throw new HttpException('방 데이터 조회에 실패하였습니다.', HttpStatus.BAD_REQUEST);
             }
             return {
                 id: winner.id,
