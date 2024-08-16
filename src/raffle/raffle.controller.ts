@@ -55,6 +55,12 @@ export class RaffleController {
     };
   }
 
+  @ApiOperation({ summary: '컨트랙트 조회', description: '컨트랙트에 기록된 정보들을 조회합니다.'})
+  @Get('/contract/:raffleId')
+  async getContract(@Param('raffleId') raffleId: number) {
+    return await this.raffleService.getContract(raffleId);
+  }
+
   @ApiOperation({ summary: '추첨 수정', description: '추첨의 정보를 수정합니다.' })
   @Put('/:raffleId')
   async update(
@@ -77,11 +83,5 @@ export class RaffleController {
       systemCode: HttpStatus.OK,
       message: "추첨 삭제에 성공하였습니다.",
     };
-  }
-
-  @ApiOperation({ summary: '컨트랙트 조회', description: '조회합니다.'})
-  @Get('/deploy/:address')
-  async getRaffle(@Param('address') address: string) {
-      return await this.raffleService.getRaffle(address);
   }
 }
