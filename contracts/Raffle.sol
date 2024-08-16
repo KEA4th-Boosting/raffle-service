@@ -2,11 +2,20 @@ pragma solidity ^0.8.24;
 
 contract Raffle { 
     uint256 public totalIndex;
+    uint256 public winnerIndex;
+    uint256 public minIndex;
+    uint256 public maxIndex;
     address public owner;
     string[] public participants;
     string[] public participantsList;
-    mapping(string => uint256) public entries;
-    mapping(string => uint256) public entriesList;
+
+    struct Entry {
+        uint256 raffleIndex;
+        uint256 entryTime;
+    }
+
+    mapping(string => Entry) public entries;
+    mapping(string => Entry) public entriesList;
 
     string public raffleName;
     uint256 public raffleDate;
@@ -21,17 +30,26 @@ contract Raffle {
         winnerCnt = _winnerCnt;
         raffleWaitingCnt = _raffleWaitingCnt;
         owner = msg.sender;
+        minIndex = type(uint256).max;
+        maxIndex = 0;
     }
 
-    function enterRaffle(string memory entryId, uint256 raffleIndex) external {
+    function enterRaffle(string memory entryId, uint256 raffleIndex, uint256 entryTime) external {
         require(block.timestamp < raffleDate, "This raffle is over.");
-        if (entries[entryId] == 0) {
+        if (entries[entryId].raffleIndex == 0) {
             participants.push(entryId);
             participantsList.push(entryId);
         }
-        entries[entryId] = raffleIndex;
-        entriesList[entryId] = raffleIndex;
+        entries[entryId] = Entry(raffleIndex, entryTime);
+        entriesList[entryId] = Entry(raffleIndex, entryTime);
         totalIndex += raffleIndex;
+
+        if (raffleIndex < minIndex) {
+            minIndex = raffleIndex;
+        }
+        if (raffleIndex > maxIndex) {
+            maxIndex = raffleIndex;
+        }
     }
 
     function selectWinners() external {
@@ -50,7 +68,7 @@ contract Raffle {
             string memory selectedParticipant;
             
             for (uint256 i = 0; i < participants.length; i++) {
-                sum += entries[participants[i]];
+                sum += entries[participants[i]].raffleIndex;
                 if (randomIndex < sum) {
                     selectedParticipant = participants[i];
                     break;
@@ -58,7 +76,8 @@ contract Raffle {
             }
 
             winners.push(selectedParticipant);
-            totalIndex -= entries[selectedParticipant];
+            winnerIndex += entries[selectedParticipant].raffleIndex;
+            totalIndex -= entries[selectedParticipant].raffleIndex;
             removeParticipant(selectedParticipant);
             participantsCount--;
             selectedCount++;
@@ -73,7 +92,7 @@ contract Raffle {
             string memory selectedParticipant;
             
             for (uint256 i = 0; i < participants.length; i++) {
-                sum += entries[participants[i]];
+                sum += entries[participants[i]].raffleIndex;
                 if (randomIndex < sum) {
                     selectedParticipant = participants[i];
                     break;
@@ -81,7 +100,7 @@ contract Raffle {
             }
 
             waitingList.push(selectedParticipant);
-            totalIndex -= entries[selectedParticipant];
+            totalIndex -= entries[selectedParticipant].raffleIndex;
             removeParticipant(selectedParticipant);
             participantsCount--;
             selectedCount++;
@@ -112,21 +131,31 @@ contract Raffle {
         return totalIndex;
     }
 
+    function getWinnerIndex() external view returns (uint256) {
+        return winnerIndex;
+    }
+
+    function getMinIndex() external view returns (uint256) {
+        return minIndex;
+    }
+
+    function getMaxIndex() external view returns (uint256) {
+        return maxIndex;
+    }
+
     function getRaffleDate() external view returns (uint256) {
         return raffleDate;
     }
 
-    function getCurrentTimestamp() external view returns (uint256) {
-        return block.timestamp;
-    }
-
-    function getEntries() external view returns (string[] memory, uint256[] memory) {
+    function getEntries() external view returns (string[] memory, uint256[] memory, uint256[] memory) {
         uint256 len = participantsList.length;
         uint256[] memory indexes = new uint256[](len);
+        uint256[] memory times = new uint256[](len);
         for (uint256 i = 0; i < len; i++) {
-            indexes[i] = entriesList[participantsList[i]];
+            indexes[i] = entriesList[participantsList[i]].raffleIndex;
+            times[i] = entriesList[participantsList[i]].entryTime;
         }
-        return (participantsList, indexes);
+        return (participantsList, indexes, times);
     }
 
     function getWinnerCnt() external view returns (uint256) {

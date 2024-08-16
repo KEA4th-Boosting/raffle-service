@@ -45,6 +45,7 @@ export class EntryService {
             raffle_id: createEntryDto.raffle_id,
             entry_id: newEntry.id,
             raffle_index: createEntryDto.raffle_index,
+            entry_time: newEntry.created_date
         }
         return await this.raffleService.enterRaffle(enterRaffleDto);
     }
@@ -72,7 +73,7 @@ export class EntryService {
                 const response = await lastValueFrom(
                     this.httpService.get(`${productURL}/room/${raffle.room_id}`)
                 );
-                roomDetails = response.data;
+                roomDetails = response.data.data;
             } catch (error) {
                 throw new HttpException('Unable to fetch room details', HttpStatus.BAD_REQUEST);
             }

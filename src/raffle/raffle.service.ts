@@ -143,26 +143,32 @@ export class RaffleService {
     return await contract.getAddress();
   }
 
-  async getRaffle(address: string) {
-    const contract = new ethers.Contract(address, this.abi, this.provider);
+  async getContract(raffleId: number) {
+    const raffle = await this.findOne(raffleId);
+    const contract = new ethers.Contract(raffle.contract_address, this.abi, this.provider);
 
     const raffleDate = (await contract.getRaffleDate()).toString();
-    const blockTimestamp = (await contract.getCurrentTimestamp()).toString();
-    const totalIndex = (await contract.totalIndex()).toString();
+    const totalIndex = (await contract.getTotalIndex()).toString();
+    const winnerIndex = (await contract.getWinnerIndex()).toString();
+    const minIndex = (await contract.getMinIndex()).toString();
+    const maxIndex = (await contract.getMaxIndex()).toString();
     const winners = await contract.getWinners();
     const waitingList = await contract.getWaitingList();
     const winnerCnt = (await contract.getWinnerCnt()).toString();
     const raffleWaitingCnt = (await contract.getRaffleWaitingCnt()).toString()
-    const [participants, indexes] = await contract.getEntries();
+    const [participants, indexes, times] = await contract.getEntries();
     const parsedEntries = participants.map((participant: string, i: number) => ({
       participant,
       index: indexes[i].toString(),
+      entryTime: times[i].toString(),
     }));
 
     return {
       raffleDate,
-      blockTimestamp,
       totalIndex,
+      winnerIndex,
+      minIndex,
+      maxIndex,
       winners,
       waitingList,
       entries: parsedEntries,
@@ -179,7 +185,7 @@ export class RaffleService {
 
     const contract = new ethers.Contract(raffle.contract_address, this.abi, wallet);
 
-    const tx = await contract.enterRaffle(enterRaffleDto.entry_id.toString(), enterRaffleDto.raffle_index);
+    const tx = await contract.enterRaffle(enterRaffleDto.entry_id.toString(), enterRaffleDto.raffle_index, enterRaffleDto.entry_time);
     await tx.wait();
 
     return tx;
@@ -199,7 +205,7 @@ export class RaffleService {
       if (raffle.raffle_date.getTime() <= currentTime) {
         await this.selectWinners(raffle.contract_address);
 
-        const raffleResult = await this.getRaffle(raffle.contract_address);
+        const raffleResult = await this.getContract(raffle.id);
         const winners = raffleResult.winners
         const waitingList = raffleResult.waitingList
 
