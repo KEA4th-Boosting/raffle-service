@@ -71,11 +71,11 @@ export class EntryService {
             let roomDetails;
             try {
                 const response = await lastValueFrom(
-                    this.httpService.get(`${productURL}/room/${raffle.room_id}`)
+                    this.httpService.get(`${productURL}/product/room/${raffle.room_id}`)
                 );
                 roomDetails = response.data.data;
             } catch (error) {
-                throw new HttpException('Unable to fetch room details', HttpStatus.BAD_REQUEST);
+                throw new HttpException('방 데이터 조회에 실패하였습니다.', HttpStatus.BAD_REQUEST);
             }
             return {
                 id: entry.id,
