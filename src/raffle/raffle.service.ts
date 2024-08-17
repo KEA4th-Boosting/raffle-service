@@ -163,9 +163,12 @@ export class RaffleService {
       entryTime: times[i].toString(),
     }));
 
+    const averageIndex = participants.length > 0 ? (Number(totalIndex) / participants.length) : 0;
+
+
     return {
       raffleDate,
-      totalIndex,
+      averageIndex,
       winnerIndex,
       minIndex,
       maxIndex,
