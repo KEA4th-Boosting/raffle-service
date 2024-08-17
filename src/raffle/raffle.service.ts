@@ -146,7 +146,7 @@ export class RaffleService {
   async getContract(raffleId: number) {
     const raffle = await this.findOne(raffleId);
     const contract = new ethers.Contract(raffle.contract_address, this.abi, this.provider);
-    console.log(contract)
+
     const raffleDate = (await contract.getRaffleDate()).toString();
     const totalIndex = (await contract.getTotalIndex()).toString();
     const winnerIndex = (await contract.getWinnerIndex()).toString();
@@ -163,9 +163,12 @@ export class RaffleService {
       entryTime: times[i].toString(),
     }));
 
+    const averageIndex = participants.length > 0 ? (Number(totalIndex) / participants.length) : 0;
+
+
     return {
       raffleDate,
-      totalIndex,
+      averageIndex,
       winnerIndex,
       minIndex,
       maxIndex,
