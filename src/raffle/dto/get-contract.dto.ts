@@ -1,30 +1,32 @@
-
-/*
 import {
     IsInt,
     IsNumber,
     IsString,
-    IsDate, IsNotEmpty, IsOptional, IsArray, ArrayNotEmpty, ValidateNested,
+    IsDate,
+    IsNotEmpty,
+    IsOptional,
+    IsArray,
+    ValidateNested,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import {ApiProperty} from "@nestjs/swagger";
 
 class Transaction {
-    @IsString()
+    @IsInt()
     @IsNotEmpty()
-    @ApiProperty({ description: '참가자 ID', example: 'participant1' })
-    participant: string;
+    @ApiProperty({ description: '응모 아이디', example: 1 })
+    entry_id: string;
 
-    @IsNumber()
+    @IsInt()
     @IsNotEmpty()
-    @ApiProperty({ description: '참가자의 추첨 지수', example: '50' })
-    index: number;
+    @ApiProperty({ description: '응모 추첨 지수', example: 50 })
+    raffle_index: number;
 
     @Type(() => Date)
     @IsDate()
     @IsNotEmpty()
-    @ApiProperty({ description: '참가 일자', example: '2024-07-31T12:08:24.228' })
-    entryTime: Date;
+    @ApiProperty({ description: '응모 생성 시간', example: '2024-07-31T12:08:24.228' })
+    entry_time: Date;
 }
 
 export class GetContractDto {
@@ -87,10 +89,9 @@ export class GetContractDto {
     waiting_list?: number[];
 
     @ValidateNested({ each: true })
-    @Type(() => EntryDto)
+    @Type(() => Transaction)
     @IsArray()
     @IsOptional()
-    @ApiProperty({ description: '응모자 목록', type: [EntryDto] })
-    entries: EntryDto[];
+    @ApiProperty({ description: '응모 내역', type: [Transaction] })
+    entries?: Transaction[];
 }
-*/

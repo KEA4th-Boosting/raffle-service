@@ -45,7 +45,7 @@ export class EntryService {
             raffle_id: createEntryDto.raffle_id,
             entry_id: newEntry.id,
             raffle_index: createEntryDto.raffle_index,
-            entry_time: newEntry.created_date
+            entry_time: Math.floor(newEntry.created_date.getTime() / 1000)
         }
         return await this.raffleService.enterRaffle(enterRaffleDto);
     }

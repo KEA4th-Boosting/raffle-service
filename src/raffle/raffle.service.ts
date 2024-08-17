@@ -59,6 +59,11 @@ export class RaffleService {
     this.bytecode = contractOutput.evm.bytecode.object;
   }
 
+  private convertToKST(date: Date): Date {
+    const offset = 9 * 60 * 60 * 1000;
+    return new Date(date.getTime() + offset);
+  }
+
   async create(createRaffleDto: CreateRaffleDto): Promise<Raffle> {
     createRaffleDto.raffle_date = new Date(createRaffleDto.raffle_date);
     createRaffleDto.check_in = new Date(createRaffleDto.check_in);
@@ -151,36 +156,65 @@ export class RaffleService {
     const raffle = await this.findOne(raffleId);
     const contract = new ethers.Contract(raffle.contract_address, this.abi, this.provider);
 
-    const raffleDate = (await contract.getRaffleDate()).toString();
-    const totalIndex = (await contract.getTotalIndex()).toString();
-    const winnerIndex = (await contract.getWinnerIndex()).toString();
-    const minIndex = (await contract.getMinIndex()).toString();
-    const maxIndex = (await contract.getMaxIndex()).toString();
+    const raffleDate: Date = this.convertToKST(new Date(  Number(await contract.getRaffleDate()) * 1000));
+    const totalIndex: number = Number(await contract.getTotalIndex());
+    const winnerIndex: number = Number(await contract.getWinnerIndex());
+    const minIndex: number = Number(await contract.getMinIndex());
+    const maxIndex: number = Number(await contract.getMaxIndex());
     const winners = await contract.getWinners();
     const waitingList = await contract.getWaitingList();
-    const winnerCnt = (await contract.getWinnerCnt()).toString();
-    const raffleWaitingCnt = (await contract.getRaffleWaitingCnt()).toString()
+    const winnerCnt: number = Number(await contract.getWinnerCnt());
+    const raffleWaitingCnt: number = Number(await contract.getRaffleWaitingCnt());
     const [participants, indexes, times] = await contract.getEntries();
     const parsedEntries = participants.map((participant: string, i: number) => ({
-      participant,
-      index: indexes[i].toString(),
-      entryTime: times[i].toString(),
+      entry_id: participant,
+      raffle_index: Number(indexes[i]),
+      entry_time: this.convertToKST(new Date(Number(times[i]) * 1000)),
     }));
 
-    const averageIndex = participants.length > 0 ? (Number(totalIndex) / participants.length) : 0;
+    const averageIndex = participants.length > 0 ? totalIndex / participants.length : 0;
 
+    // Case 1: 응모가 없을 때
+    if (participants.length === 0) {
+      return {
+        raffle_date: raffleDate,
+        contract_address: raffle.contract_address,
+        winner_cnt: winnerCnt,
+        raffle_waiting_cnt: raffleWaitingCnt,
+      };
+    }
+
+    // Case 2: 응모가 있지만 추첨이 진행되지 않았을 때
+    if (winners.length === 0) {
+      return {
+        raffle_date: raffleDate,
+        contract_address: raffle.contract_address,
+        winner_cnt: winnerCnt,
+        raffle_waiting_cnt: raffleWaitingCnt,
+        average_index: averageIndex,
+        min_index: minIndex,
+        max_index: maxIndex,
+        entries: parsedEntries,
+      };
+    }
+
+    // Case 3: 추첨이 진행되었을 때
+    const winnerAverageIndex: number = winners.length > 0 ? winnerIndex / winners.length : 0;
+    const waitingAverageIndex: number = waitingList.length > 0 ? (totalIndex - winnerIndex) / waitingList.length : 0;
 
     return {
-      raffleDate,
-      averageIndex,
-      winnerIndex,
-      minIndex,
-      maxIndex,
+      raffle_date: raffleDate,
+      contract_address: raffle.contract_address,
+      winner_cnt: winnerCnt,
+      raffle_waiting_cnt: raffleWaitingCnt,
+      average_index: averageIndex,
+      winner_average_index: winnerAverageIndex,
+      waiting_average_index: waitingAverageIndex,
+      min_index: minIndex,
+      max_index: maxIndex,
       winners,
-      waitingList,
+      waiting_list: waitingList,
       entries: parsedEntries,
-      winnerCnt,
-      raffleWaitingCnt,
     };
   }
 
@@ -214,7 +248,7 @@ export class RaffleService {
 
         const raffleResult = await this.getContract(raffle.id);
         const winners = raffleResult.winners
-        const waitingList = raffleResult.waitingList
+        const waitingList = raffleResult.waiting_list
 
         for (let i = 0; i < winners.length; i++) {
           const entry = await this.entryService.findOne(Number(winners[i]));
