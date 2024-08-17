@@ -22,9 +22,8 @@ export class EnterRaffleDto {
     @ApiProperty({ description: '사용자 추첨 지수', example: '100.5' })
     readonly raffle_index: number;
 
-    @Type(() => Date)
-    @IsDate()
+    @IsNumber()
     @IsNotEmpty()
-    @ApiProperty({ description: '응모 시간', example: '2024-07-31T12:08:24.228' })
-    entry_time: Date;
+    @ApiProperty({ description: '응모 시간' })
+    entry_time: number;
 }
