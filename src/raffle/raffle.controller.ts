@@ -21,6 +21,17 @@ export class RaffleController {
     };
   }
 
+  @ApiOperation({ summary: '전체 추첨 조회', description: '전체 추첨 정보를 조회합니다.'})
+  @Get()
+  async findAll(): Promise<{ systemCode: number, message: string, data: Raffle[] }> {
+    const raffles: Raffle[] = await this.raffleService.findAll();
+    return {
+      systemCode: HttpStatus.OK,
+      message: "추첨 정보 조회에 성공하였습니다.",
+      data: raffles
+    }
+  }
+
   @ApiOperation({ summary: '추첨 정보 조회', description: '추첨 아이디로 추첨 정보를 조회합니다.'})
   @Get('/:raffleId')
   async findOne(@Param('raffleId') raffleId: number): Promise<{ systemCode: number, message: string, data: Raffle }> {
