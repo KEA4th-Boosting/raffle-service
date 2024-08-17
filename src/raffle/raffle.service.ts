@@ -86,6 +86,10 @@ export class RaffleService {
     return raffle;
   }
 
+  async findAll(): Promise<Raffle[]> {
+    return await this.raffleRepository.find();
+  }
+
   async findOngoingRafflesLatest(): Promise<Raffle[]> {
     const now = new Date();
     return await this.raffleRepository.find({
