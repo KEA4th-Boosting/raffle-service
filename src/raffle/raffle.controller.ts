@@ -4,6 +4,7 @@ import { RaffleService } from './raffle.service';
 import { CreateRaffleDto } from './dto/create-raffle.dto';
 import {ApiOperation, ApiTags} from "@nestjs/swagger";
 import {UpdateRaffleDto} from "./dto/update-raffle.dto";
+import {Contract} from "ethers";
 
 @ApiTags('raffle')
 @Controller('raffle')
@@ -55,11 +56,14 @@ export class RaffleController {
     };
   }
 
+  /*
   @ApiOperation({ summary: '컨트랙트 조회', description: '컨트랙트에 기록된 정보들을 조회합니다.'})
   @Get('/contract/:raffleId')
-  async getContract(@Param('raffleId') raffleId: number) {
+  async getContract(@Param('raffleId') raffleId: number): Promise<{ systemCode: number, message: string, data: number[] } {
+    const contract: Contract = await this.raffleService.findOne(raffleId);
     return await this.raffleService.getContract(raffleId);
   }
+  */
 
   @ApiOperation({ summary: '추첨 수정', description: '추첨의 정보를 수정합니다.' })
   @Put('/:raffleId')
