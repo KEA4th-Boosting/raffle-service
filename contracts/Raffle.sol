@@ -69,6 +69,7 @@ contract Raffle {
         require(msg.sender == owner, "Only the admin can select winners.");
         require(block.timestamp >= raffleDate, "Raffle has not ended yet.");
         require(participants.length > 0, "No entries in the raffle.");
+        require(winners.length < winnerCnt, "Raffle is already done.");
 
         uint256 participantsCount = participants.length;
         uint256 selectedCount = 0;
