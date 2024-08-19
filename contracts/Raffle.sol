@@ -1,8 +1,12 @@
 pragma solidity ^0.8.24;
 
+import "./UpbitRandomGenerator.sol";
+
 contract Raffle { 
     uint256 public totalIndex;
+    uint256 public totalIndexCopy;
     uint256 public winnerIndex;
+    uint256 public waitingIndex;
     uint256 public minIndex;
     uint256 public maxIndex;
     address public owner;
@@ -24,7 +28,15 @@ contract Raffle {
     string[] public winners;
     string[] public waitingList;
 
-    constructor(string memory _raffleName, uint256 _raffleDate, uint256 _winnerCnt, uint256 _raffleWaitingCnt) {
+    UpbitRandomGenerator public randomGenerator;
+
+    constructor(
+        string memory _raffleName, 
+        uint256 _raffleDate, 
+        uint256 _winnerCnt, 
+        uint256 _raffleWaitingCnt,
+        address _randomGeneratorAddress
+        ) {
         raffleName = _raffleName;
         raffleDate = _raffleDate;
         winnerCnt = _winnerCnt;
@@ -32,6 +44,7 @@ contract Raffle {
         owner = msg.sender;
         minIndex = type(uint256).max;
         maxIndex = 0;
+        randomGenerator = UpbitRandomGenerator(_randomGeneratorAddress);
     }
 
     function enterRaffle(string memory entryId, uint256 raffleIndex, uint256 entryTime) external {
@@ -59,17 +72,21 @@ contract Raffle {
 
         uint256 participantsCount = participants.length;
         uint256 selectedCount = 0;
+        totalIndexCopy = totalIndex;
 
-        uint256 seed = uint256(keccak256(abi.encodePacked(block.timestamp, block.difficulty)));
+        uint256 blockNumber = block.number - 1;
+        string memory salt = string(abi.encodePacked(raffleName, block.timestamp));
 
         while (selectedCount < winnerCnt && participantsCount > 0) {
-            uint256 randomIndex = seed % totalIndex;
+            randomGenerator.recordRandomNumbers(totalIndexCopy, 1, blockNumber, salt);
+            uint256 randomNumber = randomGenerator.getRandomNumbers(totalIndexCopy, 1, blockNumber, salt)[0];
+
             uint256 sum = 0;
             string memory selectedParticipant;
             
             for (uint256 i = 0; i < participants.length; i++) {
                 sum += entries[participants[i]].raffleIndex;
-                if (randomIndex < sum) {
+                if (randomNumber < sum) {
                     selectedParticipant = participants[i];
                     break;
                 }
@@ -77,35 +94,34 @@ contract Raffle {
 
             winners.push(selectedParticipant);
             winnerIndex += entries[selectedParticipant].raffleIndex;
-            totalIndex -= entries[selectedParticipant].raffleIndex;
+            totalIndexCopy -= entries[selectedParticipant].raffleIndex;
             removeParticipant(selectedParticipant);
             participantsCount--;
             selectedCount++;
-            
-            seed = uint256(keccak256(abi.encodePacked(seed)));
         }
 
         selectedCount = 0;
         while (selectedCount < raffleWaitingCnt && participantsCount > 0) {
-            uint256 randomIndex = seed % totalIndex;
+            randomGenerator.recordRandomNumbers(totalIndexCopy, 1, blockNumber, salt);
+            uint256 randomNumber = randomGenerator.getRandomNumbers(totalIndexCopy, 1, blockNumber, salt)[0];
+
             uint256 sum = 0;
             string memory selectedParticipant;
             
             for (uint256 i = 0; i < participants.length; i++) {
                 sum += entries[participants[i]].raffleIndex;
-                if (randomIndex < sum) {
-                    selectedParticipant = participants[i];
-                    break;
+                if (randomNumber < sum) {
+                selectedParticipant = participants[i];
+                break;
                 }
             }
 
             waitingList.push(selectedParticipant);
-            totalIndex -= entries[selectedParticipant].raffleIndex;
+            waitingIndex += entries[selectedParticipant].raffleIndex;
+            totalIndexCopy -= entries[selectedParticipant].raffleIndex;
             removeParticipant(selectedParticipant);
             participantsCount--;
             selectedCount++;
-            
-            seed = uint256(keccak256(abi.encodePacked(seed)));
         }
     }
 
@@ -133,6 +149,10 @@ contract Raffle {
 
     function getWinnerIndex() external view returns (uint256) {
         return winnerIndex;
+    }
+
+    function getWaitingIndex() external view returns (uint256) {
+        return waitingIndex;
     }
 
     function getMinIndex() external view returns (uint256) {
@@ -164,5 +184,9 @@ contract Raffle {
 
     function getRaffleWaitingCnt() external view returns (uint256) {
         return raffleWaitingCnt;
+    }
+
+    function getCurrentBlockTimestamp() external view returns (uint256) {
+        return block.timestamp;
     }
 }

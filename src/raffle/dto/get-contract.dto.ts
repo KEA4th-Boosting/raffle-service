@@ -94,4 +94,10 @@ export class GetContractDto {
     @IsOptional()
     @ApiProperty({ description: '응모 내역', type: [Transaction] })
     entries?: Transaction[];
+
+    @IsNumber()
+    @IsArray()
+    @IsOptional()
+    @ApiProperty({ description: '추첨 랜덤 숫자', example: [1, 2] })
+    random_numbers?: number[];
 }
