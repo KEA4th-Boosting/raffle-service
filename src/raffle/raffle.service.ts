@@ -75,6 +75,20 @@ export class RaffleService {
   }
 
   async create(createRaffleDto: CreateRaffleDto): Promise<Raffle> {
+    const currentDate = new Date();
+
+    if (createRaffleDto.raffle_date <= currentDate) {
+      throw new Error('추첨 일자는 현재 시간보다 이후여야 합니다.');
+    }
+
+    if (createRaffleDto.entry_start_date <= currentDate) {
+      throw new Error('응모 시작 시간은 현재 시간보다 이후여야 합니다.');
+    }
+
+    if (createRaffleDto.entry_end_date <= currentDate) {
+      throw new Error('응모 마감 시간은 현재 시간보다 이후여야 합니다.');
+    }
+
     createRaffleDto.raffle_date = new Date(createRaffleDto.raffle_date);
     createRaffleDto.check_in = new Date(createRaffleDto.check_in);
     createRaffleDto.check_out = new Date(createRaffleDto.check_out);
