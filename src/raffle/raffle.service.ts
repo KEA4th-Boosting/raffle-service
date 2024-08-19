@@ -16,6 +16,7 @@ import { EnterRaffleDto } from "./dto/enter-raffle.dto";
 import { CreateWinnerDto } from "../winner/dto/create-winner.dto";
 import { WinnerService } from "../winner/winner.service";
 import { EntryService } from "../entry/entry.service";
+import {GetContractDto} from "./dto/get-contract.dto";
 
 @Injectable()
 export class RaffleService {
@@ -37,13 +38,17 @@ export class RaffleService {
   }
 
   private loadContract() {
-    const sourceCode = readFileSync(join(__dirname, '../../../contracts/Raffle.sol'), 'utf8');
+    const raffleCode = readFileSync(join(__dirname, '../../../contracts/Raffle.sol'), 'utf8');
+    const randomCode = readFileSync(join(__dirname, '../../../contracts/UpbitRandomGenerator.sol'), 'utf8');
     const input = {
       language: 'Solidity',
       sources: {
         'Raffle.sol': {
-          content: sourceCode,
+          content: raffleCode,
         },
+        'UpbitRandomGenerator.sol': {
+          content: randomCode,
+        }
       },
       settings: {
         outputSelection: {
@@ -138,6 +143,7 @@ export class RaffleService {
 
   async deployRaffle(createRaffleDto: CreateRaffleDto):Promise<string> {
     const privateKey = this.configService.get<string>('PRIVATE_KEY');
+    const randomGenerator = this.configService.get<string>('RANDOM_GENERATOR');
     const wallet = new ethers.Wallet(privateKey, this.provider);
     const raffleDateTimestamp = Math.floor(createRaffleDto.raffle_date.getTime() / 1000);
     const raffleFactory = new ethers.ContractFactory(this.abi, this.bytecode, wallet);
@@ -145,10 +151,10 @@ export class RaffleService {
         createRaffleDto.raffle_name,
         raffleDateTimestamp,
         createRaffleDto.winner_cnt,
-        createRaffleDto.raffle_waiting_cnt
+        createRaffleDto.raffle_waiting_cnt,
+        randomGenerator
     );
     await contract.waitForDeployment();
-
     return await contract.getAddress();
   }
 
@@ -159,6 +165,7 @@ export class RaffleService {
     const raffleDate: Date = this.convertToKST(new Date(  Number(await contract.getRaffleDate()) * 1000));
     const totalIndex: number = Number(await contract.getTotalIndex());
     const winnerIndex: number = Number(await contract.getWinnerIndex());
+    const waitingIndex: number = Number(await contract.getWaitingIndex());
     const minIndex: number = Number(await contract.getMinIndex());
     const maxIndex: number = Number(await contract.getMaxIndex());
     const winners = await contract.getWinners();
@@ -200,7 +207,7 @@ export class RaffleService {
 
     // Case 3: 추첨이 진행되었을 때
     const winnerAverageIndex: number = winners.length > 0 ? winnerIndex / winners.length : 0;
-    const waitingAverageIndex: number = waitingList.length > 0 ? (totalIndex - winnerIndex) / waitingList.length : 0;
+    const waitingAverageIndex: number = waitingList.length > 0 ? waitingIndex / waitingList.length : 0;
 
     return {
       raffle_date: raffleDate,
@@ -243,12 +250,13 @@ export class RaffleService {
     const currentTime = Date.now();
 
     for (const raffle of raffles) {
+      console.log(raffle);
       if (raffle.raffle_date.getTime() <= currentTime) {
         await this.selectWinners(raffle.contract_address);
-
-        const raffleResult = await this.getContract(raffle.id);
-        const winners = raffleResult.winners
-        const waitingList = raffleResult.waiting_list
+        console.log('eredfwfwd');
+        const raffleResult: GetContractDto = await this.getContract(raffle.id);
+        const winners: number[] = raffleResult.winners
+        const waitingList: number[] = raffleResult.waiting_list
 
         for (let i = 0; i < winners.length; i++) {
           const entry = await this.entryService.findOne(Number(winners[i]));
@@ -275,7 +283,7 @@ export class RaffleService {
         }
 
         raffle.raffle_status = true;
-        await this.raffleRepository.update(raffle.id, { raffle_status: true });
+        await this.raffleRepository.save(raffle);
       }
     }
   }
