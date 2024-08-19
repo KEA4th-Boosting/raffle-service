@@ -104,7 +104,7 @@ export class EntryService {
     async getCompetition(raffleId: number, userId: number): Promise<number> {
         const entries:Entry[] = await this.entryRepository.find({ where: { raffle_id: raffleId } });
         const totalRaffleIndex:number = entries.reduce((sum, entry) => sum + entry.raffle_index, 0);
-        const userEntry:Entry = entries.find(entry => entry.user_id === userId);
+        const userEntry:Entry = entries.find(entry => Number(entry.user_id) === userId);
         if (!userEntry) {
             throw new Error('유저가 해당 추첨에 응모한 내역이 없습니다.');
         }
