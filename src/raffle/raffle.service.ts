@@ -19,6 +19,7 @@ import { EntryService } from "../entry/entry.service";
 import {GetContractDto} from "./dto/get-contract.dto";
 import {lastValueFrom} from "rxjs";
 import {HttpService} from "@nestjs/axios";
+import {ClientKafka} from "@nestjs/microservices";
 
 @Injectable()
 export class RaffleService {
@@ -35,6 +36,7 @@ export class RaffleService {
     private entryService: EntryService,
     @Inject(forwardRef(() => WinnerService))
     private winnerService: WinnerService,
+    @Inject('RAFFLE_PRODUCER') private readonly kafkaProducer: ClientKafka,
   ) {
     this.provider = new JsonRpcProvider(this.configService.get<string>('ALL_THAT_NODE_URL'));
     this.loadContract()
@@ -254,6 +256,10 @@ export class RaffleService {
     const currentTime = Date.now();
 
     for (const raffle of raffles) {
+      const blockCheck: GetContractDto = await this.getContract(raffle.id);
+      if (blockCheck.winners && blockCheck.winners.length > 0) {
+        continue;
+      }
       if (raffle.raffle_date.getTime() <= currentTime) {
         await this.selectWinners(raffle.contract_address);
         const raffleResult: GetContractDto = await this.getContract(raffle.id);
@@ -277,9 +283,17 @@ export class RaffleService {
             entry_id: entry.id,
             user_id: entry.user_id,
             waiting_number: 0,
-            benefit_value: raffle.discount_rate * roomDetails.value,
+            benefit_value: raffle.discount_rate * roomDetails.originalValue,
           };
           await this.winnerService.create(createWinnerDto);
+
+          /*
+          this.kafkaProducer.emit('raffle.winner', {
+            userId: entry.user_id,
+            raffleId: raffle.id,
+            message: '추첨에 당첨되었습니다.',
+          });
+          */
         }
 
         for (let i = 0; i < waitingList.length; i++) {
@@ -289,9 +303,18 @@ export class RaffleService {
             entry_id: entry.id,
             user_id: entry.user_id,
             waiting_number: i + 1,
-            benefit_value: raffle.discount_rate * roomDetails.value,
+            benefit_value: raffle.discount_rate * roomDetails.originalValue,
           };
           await this.winnerService.create(createWinnerDto);
+
+          /*
+          this.kafkaProducer.emit('raffle.waiting', {
+            userId: entry.user_id,
+            raffleId: raffle.id,
+            waitingNumber: i + 1,
+            message: `${i + 1}번째 대기자로 당첨되었습니다.`,
+          });
+           */
         }
 
         raffle.raffle_status = true;
