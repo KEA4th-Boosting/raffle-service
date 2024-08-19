@@ -1,4 +1,4 @@
-import {forwardRef, Inject, Injectable, NotFoundException} from '@nestjs/common';
+import {forwardRef, HttpException, HttpStatus, Inject, Injectable, NotFoundException} from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -17,6 +17,8 @@ import { CreateWinnerDto } from "../winner/dto/create-winner.dto";
 import { WinnerService } from "../winner/winner.service";
 import { EntryService } from "../entry/entry.service";
 import {GetContractDto} from "./dto/get-contract.dto";
+import {lastValueFrom} from "rxjs";
+import {HttpService} from "@nestjs/axios";
 
 @Injectable()
 export class RaffleService {
@@ -28,6 +30,7 @@ export class RaffleService {
     @InjectRepository(Raffle)
     private raffleRepository: Repository<Raffle>,
     private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
     @Inject(forwardRef(() => EntryService))
     private entryService: EntryService,
     @Inject(forwardRef(() => WinnerService))
@@ -241,6 +244,7 @@ export class RaffleService {
 
   @Cron(CronExpression.EVERY_MINUTE)
   async progressRaffle() {
+    const productURL = this.configService.get<string>('PRODUCT_SERVICE_URL')
     const raffles = await this.raffleRepository.find({
       where: {
         raffle_status: false,
@@ -250,13 +254,21 @@ export class RaffleService {
     const currentTime = Date.now();
 
     for (const raffle of raffles) {
-      console.log(raffle);
       if (raffle.raffle_date.getTime() <= currentTime) {
         await this.selectWinners(raffle.contract_address);
-        console.log('eredfwfwd');
         const raffleResult: GetContractDto = await this.getContract(raffle.id);
         const winners: number[] = raffleResult.winners
         const waitingList: number[] = raffleResult.waiting_list
+
+        let roomDetails;
+        try {
+          const response = await lastValueFrom(
+              this.httpService.get(`${productURL}/product/room/${raffle.room_id}`)
+          );
+          roomDetails = response.data.data;
+        } catch (error) {
+          throw new HttpException('방 데이터 조회에 실패하였습니다.', HttpStatus.BAD_REQUEST);
+        }
 
         for (let i = 0; i < winners.length; i++) {
           const entry = await this.entryService.findOne(Number(winners[i]));
@@ -265,7 +277,7 @@ export class RaffleService {
             entry_id: entry.id,
             user_id: entry.user_id,
             waiting_number: 0,
-            benefit_value: raffle.discount_rate * 0,
+            benefit_value: raffle.discount_rate * roomDetails.value,
           };
           await this.winnerService.create(createWinnerDto);
         }
@@ -277,7 +289,7 @@ export class RaffleService {
             entry_id: entry.id,
             user_id: entry.user_id,
             waiting_number: i + 1,
-            benefit_value: raffle.discount_rate * 0,
+            benefit_value: raffle.discount_rate * roomDetails.value,
           };
           await this.winnerService.create(createWinnerDto);
         }
