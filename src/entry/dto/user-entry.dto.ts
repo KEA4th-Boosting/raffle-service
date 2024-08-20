@@ -65,6 +65,11 @@ export class UserEntryDto {
 
     @IsInt()
     @IsOptional()
+    @ApiProperty({ description: '현재 대기 순번', example: 0 })
+    current_waiting_number?: number;
+
+    @IsInt()
+    @IsOptional()
     @ApiProperty({ description: '대기 순번', example: 0 })
     readonly waiting_number?: number;
 

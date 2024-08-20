@@ -6,7 +6,7 @@ import { Raffle } from './entities/raffle.entity';
 import { EntryModule } from "../entry/entry.module";
 import { WinnerModule } from "../winner/winner.module";
 import {HttpModule} from "@nestjs/axios";
-import {ClientsModule, Transport} from "@nestjs/microservices";
+import {ClientProviderOptions, ClientsModule, Transport} from "@nestjs/microservices";
 import {ConfigModule, ConfigService} from "@nestjs/config";
 
 @Module({
@@ -21,7 +21,7 @@ import {ConfigModule, ConfigService} from "@nestjs/config";
               name: 'RAFFLE_PRODUCER',
               imports: [ConfigModule],
               inject: [ConfigService],
-              useFactory: (configService: ConfigService) => ({
+              useFactory: (configService: ConfigService)=> ({
                   transport: Transport.KAFKA,
                   options: {
                       client: {
@@ -29,7 +29,7 @@ import {ConfigModule, ConfigService} from "@nestjs/config";
                           brokers: [configService.get<string>('KAFKA_CLUSTER_URL')],
                       },
                       consumer: {
-                          groupId: 'group_1',
+                          groupId: 'group_2',
                       },
                   },
               }),
