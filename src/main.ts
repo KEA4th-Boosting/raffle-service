@@ -15,8 +15,8 @@ async function bootstrap() {
   app.setGlobalPrefix('raffle');
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  app.use(compression());
-  app.use(helmet());
+  //app.use(compression());
+  //app.use(helmet());
 
   const config = new DocumentBuilder()
       .setTitle('Raffle-swagger')
