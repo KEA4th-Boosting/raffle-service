@@ -155,6 +155,8 @@ describe('WinnerController', () => {
           roomType: '스위트',
           room_area: 50,
           standardPeople: 2,
+          waiting_number: 0,
+          current_waiting_number: 0,
           images: []
         }
       ];

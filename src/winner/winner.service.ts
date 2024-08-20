@@ -127,12 +127,14 @@ export class WinnerService {
                 }
             });
             if (nextWinner) {
-                this.kafkaProducer.emit('winner.cancel', {
-                    userId: nextWinner.user_id,
-                    raffleId: nextWinner.raffle_id,
-                    winnerId: nextWinner.id,
+                const message = JSON.stringify({
+                    userId: nextWinner.user_id.toString(),
+                    raffleId: nextWinner.raffle_id.toString(),
+                    winnerId: nextWinner.id.toString(),
                     message: '순서가 돌아와 예약이 가능합니다.',
-                })
+                });
+
+                this.kafkaProducer.emit('winner.cancel', message)
                     .subscribe({
                         next: (response) => {
                             console.log('Message sent successfully:', response);
