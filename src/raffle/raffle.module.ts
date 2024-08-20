@@ -7,7 +7,7 @@ import { EntryModule } from "../entry/entry.module";
 import { WinnerModule } from "../winner/winner.module";
 import {HttpModule} from "@nestjs/axios";
 import {ClientsModule, Transport} from "@nestjs/microservices";
-import {KAFKA_OPTION} from "../main";
+import {ConfigModule, ConfigService} from "@nestjs/config";
 
 @Module({
   imports: [
@@ -15,19 +15,24 @@ import {KAFKA_OPTION} from "../main";
       forwardRef(() => EntryModule),
       forwardRef(() => WinnerModule),
       HttpModule,
-      ClientsModule.register([
+      ConfigModule,
+      ClientsModule.registerAsync([
           {
               name: 'RAFFLE_PRODUCER',
-              transport: Transport.KAFKA,
-              options: {
-                  client: {
-                      clientId: "raffle",
-                      brokers: ["210.109.53.237:9092"],
+              imports: [ConfigModule],
+              inject: [ConfigService],
+              useFactory: (configService: ConfigService) => ({
+                  transport: Transport.KAFKA,
+                  options: {
+                      client: {
+                          clientId: 'raffle',
+                          brokers: [configService.get<string>('KAFKA_BROKER')],
+                      },
+                      consumer: {
+                          groupId: 'group_1',
+                      },
                   },
-                  consumer: {
-                      groupId: "group_1",
-                  },
-              },
+              }),
           },
       ]),
   ],

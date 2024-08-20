@@ -8,19 +8,6 @@ import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {ValidationPipe} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
 
-export const KAFKA_OPTION: KafkaOptions = {
-  transport: Transport.KAFKA,
-  options: {
-    client: {
-      clientId: "raffle",
-      brokers: ["210.109.53.237:9092"],
-    },
-    consumer: {
-      groupId: "group_1",
-    },
-  },
-};
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('raffle');
@@ -42,7 +29,6 @@ async function bootstrap() {
     credentials: true, // 자격 증명(쿠키 등) 허용 여부
   });
   */
-  app.connectMicroservice<MicroserviceOptions>(KAFKA_OPTION);
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT');
