@@ -1,3 +1,5 @@
+import {KafkaOptions, MicroserviceOptions, Transport} from "@nestjs/microservices";
+
 process.env.TZ = 'Asia/Seoul';
 
 import { NestFactory } from '@nestjs/core';
@@ -27,6 +29,7 @@ async function bootstrap() {
     credentials: true, // 자격 증명(쿠키 등) 허용 여부
   });
   */
+
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT');
   await app.listen(port || 3000);
