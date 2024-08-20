@@ -92,6 +92,7 @@ export class EntryService {
                 check_in: raffle.check_in,
                 check_out: raffle.check_out,
                 raffle_date: raffle.raffle_date,
+                current_waiting_number: raffle.current_waiting_number,
                 waiting_number: winner?.waiting_number ?? null,
                 cancellation_noshow_status: winner?.cancellation_noshow_status as CancellationNoShow ?? null,
                 roomName: roomDetails.roomName,

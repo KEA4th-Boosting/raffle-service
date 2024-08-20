@@ -29,7 +29,7 @@ import {ClientsModule, Transport} from "@nestjs/microservices";
                           brokers: [configService.get<string>('KAFKA_CLUSTER_URL')],
                       },
                       consumer: {
-                          groupId: 'group_1',
+                          groupId: 'group_2',
                       },
                   },
               }),
