@@ -49,6 +49,7 @@ $ npm run test:cov
 Lee Hanseul - 201935113
 
 ## ⚙️ env
+```bash
 PORT=
 DB_HOST=
 DB_PORT=
@@ -62,3 +63,4 @@ PRODUCT_SERVICE_URL=
 MEMBER_SERVICE_URL=
 RANDOM_GENERATOR=
 KAFKA_CLUSTER_URL=
+```
