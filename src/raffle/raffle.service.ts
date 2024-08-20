@@ -301,11 +301,14 @@ export class RaffleService {
           };
           await this.winnerService.create(createWinnerDto);
 
-          this.kafkaProducer.emit('raffle.winner', {
-            userId: entry.user_id,
-            raffleId: raffle.id,
+          const message = JSON.stringify({
+            userId: entry.user_id.toString(),
+            raffleId: raffle.id.toString(),
+            waitingNumber: '',
             message: '추첨에 당첨되었습니다.',
-          })
+          });
+
+          this.kafkaProducer.emit('raffle.winner', message)
               .subscribe({
                 next: (response) => {
                   console.log('Message sent successfully:', response);
@@ -327,12 +330,14 @@ export class RaffleService {
           };
           await this.winnerService.create(createWinnerDto);
 
-          this.kafkaProducer.emit('raffle.waiting', {
-            userId: entry.user_id,
-            raffleId: raffle.id,
-            waitingNumber: i + 1,
+          const message = JSON.stringify({
+            userId: entry.user_id.toString(),
+            raffleId: raffle.id.toString(),
+            waitingNumber: (i + 1).toString(),
             message: `${i + 1}번째 대기자로 당첨되었습니다.`,
-          })
+          });
+
+          this.kafkaProducer.emit('raffle.waiting', message)
               .subscribe({
                 next: (response) => {
                   console.log('Message sent successfully:', response);
