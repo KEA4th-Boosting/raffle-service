@@ -26,7 +26,7 @@ import {ConfigModule, ConfigService} from "@nestjs/config";
                   options: {
                       client: {
                           clientId: 'raffle',
-                          brokers: [configService.get<string>('KAFKA_BROKER')],
+                          brokers: [configService.get<string>('KAFKA_CLUSTER_URL')],
                       },
                       consumer: {
                           groupId: 'group_1',
