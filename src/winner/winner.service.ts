@@ -10,6 +10,7 @@ import {UserWinnerDto} from "./dto/user-winner.dto";
 import {ConfigService} from "@nestjs/config";
 import {EntryService} from "../entry/entry.service";
 import {lastValueFrom} from "rxjs";
+import {ClientKafka} from "@nestjs/microservices";
 
 @Injectable()
 export class WinnerService {
@@ -22,6 +23,7 @@ export class WinnerService {
         private raffleService: RaffleService,
         @Inject(forwardRef(() => EntryService))
         private entryService: EntryService,
+        @Inject('WINNER_PRODUCER') private readonly kafkaProducer: ClientKafka,
     ) {}
 
     async create(createWinnerDto: CreateWinnerDto): Promise<Winner> {
@@ -111,12 +113,35 @@ export class WinnerService {
         await this.winnerRepository.update(winnerId, updatedWinner);
 
         const winner = await this.findOne(winnerId);
-        let updatedWaitingNumber = 1;
-        if (winner.waiting_number !== null && winner.waiting_number >= 1) {
-            updatedWaitingNumber = winner.waiting_number + 1;
+        const raffle = await this.raffleService.findOne(winner.raffle_id);
+        let updatedWaitingNumber = winner.waiting_number + 1;
+
+        if (updatedWaitingNumber >= raffle.raffle_waiting_cnt) {
+            await this.raffleService.update(winner.raffle_id, {current_waiting_number: updatedWaitingNumber})
+            const nextWinner = await this.winnerRepository.findOne({
+                where: {
+                    raffle_id: winner.raffle_id,
+                    waiting_number: updatedWaitingNumber,
+                }
+            });
+            if (nextWinner) {
+                this.kafkaProducer.emit('winner.cancel', {
+                    userId: nextWinner.user_id,
+                    raffleId: nextWinner.raffle_id,
+                    winnerId: nextWinner.id,
+                    message: '순서가 돌아와 예약이 가능합니다.',
+                })
+                    .subscribe({
+                        next: (response) => {
+                            console.log('Message sent successfully:', response);
+                        },
+                        error: (err) => {
+                            console.error('Error sending message:', err);
+                        }
+                    });
+            }
         }
 
-        await this.raffleService.update(winner.raffle_id, {current_waiting_number: updatedWaitingNumber})
         return this.findOne(winnerId);
     }
 }
