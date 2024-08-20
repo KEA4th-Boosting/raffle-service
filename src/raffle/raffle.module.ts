@@ -7,6 +7,7 @@ import { EntryModule } from "../entry/entry.module";
 import { WinnerModule } from "../winner/winner.module";
 import {HttpModule} from "@nestjs/axios";
 import {ClientsModule, Transport} from "@nestjs/microservices";
+import {KAFKA_OPTION} from "../main";
 
 @Module({
   imports: [
@@ -20,10 +21,11 @@ import {ClientsModule, Transport} from "@nestjs/microservices";
               transport: Transport.KAFKA,
               options: {
                   client: {
-                      brokers: ['210.109.53.237:9092'],
+                      clientId: "raffle",
+                      brokers: ["210.109.53.237:9092"],
                   },
                   consumer: {
-                      groupId: 'group_1',
+                      groupId: "group_1",
                   },
               },
           },

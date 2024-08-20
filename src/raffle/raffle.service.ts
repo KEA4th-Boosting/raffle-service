@@ -301,13 +301,19 @@ export class RaffleService {
           };
           await this.winnerService.create(createWinnerDto);
 
-          /*
           this.kafkaProducer.emit('raffle.winner', {
             userId: entry.user_id,
             raffleId: raffle.id,
             message: '추첨에 당첨되었습니다.',
-          });
-          */
+          })
+              .subscribe({
+                next: (response) => {
+                  console.log('Message sent successfully:', response);
+                },
+                error: (err) => {
+                  console.error('Error sending message:', err);
+                }
+              });
         }
 
         for (let i = 0; i < waitingList.length; i++) {
@@ -321,14 +327,20 @@ export class RaffleService {
           };
           await this.winnerService.create(createWinnerDto);
 
-          /*
           this.kafkaProducer.emit('raffle.waiting', {
             userId: entry.user_id,
             raffleId: raffle.id,
             waitingNumber: i + 1,
             message: `${i + 1}번째 대기자로 당첨되었습니다.`,
-          });
-           */
+          })
+              .subscribe({
+                next: (response) => {
+                  console.log('Message sent successfully:', response);
+                },
+                error: (err) => {
+                  console.error('Error sending message:', err);
+                }
+              });
         }
 
         raffle.raffle_status = true;
