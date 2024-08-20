@@ -9,6 +9,7 @@ import {ValidationPipe} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
 
 import * as compression from 'compression';
+import * as morgan from 'morgan';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,6 +18,7 @@ async function bootstrap() {
 
   app.use(compression());
   app.use(helmet());
+  app.use(morgan('combined'));
 
   const config = new DocumentBuilder()
       .setTitle('Raffle-swagger')
