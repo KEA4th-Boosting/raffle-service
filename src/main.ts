@@ -1,4 +1,4 @@
-import {KafkaOptions, MicroserviceOptions, Transport} from "@nestjs/microservices";
+import helmet from "helmet";
 
 process.env.TZ = 'Asia/Seoul';
 
@@ -8,10 +8,15 @@ import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
 import {ValidationPipe} from "@nestjs/common";
 import {ConfigService} from "@nestjs/config";
 
+import * as compression from 'compression';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('raffle');
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+  app.use(compression());
+  app.use(helmet());
 
   const config = new DocumentBuilder()
       .setTitle('Raffle-swagger')

@@ -131,6 +131,7 @@ export class WinnerService {
                     userId: nextWinner.user_id.toString(),
                     raffleId: nextWinner.raffle_id.toString(),
                     winnerId: nextWinner.id.toString(),
+                    waitingNumber: '',
                     message: '순서가 돌아와 예약이 가능합니다.',
                 });
 

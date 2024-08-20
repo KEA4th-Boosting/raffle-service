@@ -304,6 +304,7 @@ export class RaffleService {
           const message = JSON.stringify({
             userId: entry.user_id.toString(),
             raffleId: raffle.id.toString(),
+            winnerId: '',
             waitingNumber: '',
             message: '추첨에 당첨되었습니다.',
           });
@@ -333,6 +334,7 @@ export class RaffleService {
           const message = JSON.stringify({
             userId: entry.user_id.toString(),
             raffleId: raffle.id.toString(),
+            winnerId: '',
             waitingNumber: (i + 1).toString(),
             message: `${i + 1}번째 대기자로 당첨되었습니다.`,
           });
