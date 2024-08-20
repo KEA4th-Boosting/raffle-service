@@ -59,6 +59,11 @@ export class UserWinnerDto {
     @ApiProperty({ description: '혜택 금액', example: '100000.0' })
     benefit_value: number;
 
+    @IsInt()
+    @IsNotEmpty()
+    @ApiProperty({ description: '대기 순번', example: '0' })
+    readonly waiting_number: number;
+
     @Type(() => Date)
     @IsDate()
     @IsNotEmpty()
@@ -70,6 +75,11 @@ export class UserWinnerDto {
     @IsNotEmpty()
     @ApiProperty({ description: '체크아웃 날짜', example: '2024-07-31' })
     check_out: Date;
+
+    @IsInt()
+    @IsNotEmpty()
+    @ApiProperty({ description: '현재 대기 순번', example: 0 })
+    readonly current_waiting_number: number;
 
     @Type(() => Date)
     @IsDate()
