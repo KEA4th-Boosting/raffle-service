@@ -27,7 +27,7 @@ export class EntryService {
     ) {}
 
     async create(createEntryDto: CreateEntryDto): Promise<Entry> {
-        const { raffle_id, user_id } = createEntryDto;
+        const { raffle_id, user_id, raffle_index } = createEntryDto;
 
         const isOngoing = await this.raffleService.isRaffleOngoing(raffle_id);
         if (!isOngoing) {
@@ -37,9 +37,12 @@ export class EntryService {
         const existingEntry = await this.entryRepository.findOne({
             where: { raffle_id, user_id },
         });
-
         if (existingEntry) {
             throw new Error('해당 추첨에 이미 응모하였습니다.');
+        }
+
+        if (raffle_index <= 0) {
+            throw new Error('추첨 지수는 0보다 커야 합니다.');
         }
 
         const newEntry = this.entryRepository.create(createEntryDto);
