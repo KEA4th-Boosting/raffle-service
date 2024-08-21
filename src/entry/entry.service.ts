@@ -1,6 +1,6 @@
 import {forwardRef, HttpException, HttpStatus, Inject, Injectable} from '@nestjs/common';
 import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from 'typeorm';
+import {DataSource, Repository} from 'typeorm';
 
 import { Entry } from "./entities/entry.entity";
 import { CreateEntryDto } from "./dto/create-entry.dto";
@@ -20,6 +20,7 @@ export class EntryService {
         private entryRepository: Repository<Entry>,
         private readonly configService: ConfigService,
         private readonly httpService: HttpService,
+        private readonly dataSource: DataSource,
         @Inject(forwardRef(() => RaffleService))
         private raffleService: RaffleService,
         @Inject(forwardRef(() => WinnerService))
@@ -27,35 +28,43 @@ export class EntryService {
     ) {}
 
     async create(createEntryDto: CreateEntryDto): Promise<Entry> {
-        const { raffle_id, user_id } = createEntryDto;
+        const { raffle_id, user_id, raffle_index } = createEntryDto;
 
-        const isOngoing = await this.raffleService.isRaffleOngoing(raffle_id);
-        if (!isOngoing) {
-            throw new Error('추첨이 진행중이지 않습니다.');
-        }
+        return await this.dataSource.transaction(async manager => {
+            const isOngoing = await this.raffleService.isRaffleOngoing(raffle_id);
+            if (!isOngoing) {
+                throw new Error('추첨이 진행중이지 않습니다.');
+            }
 
-        const existingEntry = await this.entryRepository.findOne({
-            where: { raffle_id, user_id },
+            const existingEntry = await this.entryRepository.findOne({
+                where: { raffle_id, user_id },
+            });
+            if (existingEntry) {
+                throw new Error('해당 추첨에 이미 응모하였습니다.');
+            }
+
+            if (raffle_index <= 0) {
+                throw new Error('추첨 지수는 0보다 커야 합니다.');
+            }
+
+            const newEntry = this.entryRepository.create(createEntryDto);
+            await manager.save(newEntry);
+
+            const enterRaffleDto: EnterRaffleDto = {
+                raffle_id: createEntryDto.raffle_id,
+                entry_id: newEntry.id,
+                raffle_index: createEntryDto.raffle_index,
+                entry_time: Math.floor(newEntry.created_date.getTime() / 1000)
+            };
+
+            const tx = await this.raffleService.enterRaffle(enterRaffleDto);
+
+            const raffle = await this.raffleService.findOne(raffle_id);
+            const updateRaffleDto = { participant_cnt: raffle.participant_cnt + 1 };
+            await this.raffleService.update(raffle_id, updateRaffleDto);
+
+            return newEntry;
         });
-
-        if (existingEntry) {
-            throw new Error('해당 추첨에 이미 응모하였습니다.');
-        }
-
-        const newEntry = this.entryRepository.create(createEntryDto);
-        await this.entryRepository.save(newEntry);
-
-        const raffle = await this.raffleService.findOne(raffle_id);
-        const updateRaffleDto = { participant_cnt: raffle.participant_cnt + 1 };
-        await this.raffleService.update(raffle_id, updateRaffleDto);
-
-        const enterRaffleDto: EnterRaffleDto = {
-            raffle_id: createEntryDto.raffle_id,
-            entry_id: newEntry.id,
-            raffle_index: createEntryDto.raffle_index,
-            entry_time: Math.floor(newEntry.created_date.getTime() / 1000)
-        }
-        return await this.raffleService.enterRaffle(enterRaffleDto);
     }
 
     async findOne(entryId: number): Promise<Entry> {

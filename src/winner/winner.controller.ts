@@ -45,7 +45,6 @@ export class WinnerController {
     @Get('/user/:userId')
     async findUserWinners(@Param('userId') userId: number): Promise<{ systemCode: number, message: string, data: UserWinnerDto[] }> {
         const userWinners: UserWinnerDto[] = await this.winnerService.findUserWinners(userId);
-        //console.log(userWinners);
         return {
             systemCode: HttpStatus.OK,
             message: "당첨 조회에 성공하였습니다.",

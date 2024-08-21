@@ -192,10 +192,14 @@ export class RaffleService {
     const winnerCnt: number = Number(await contract.getWinnerCnt());
     const raffleWaitingCnt: number = Number(await contract.getRaffleWaitingCnt());
     const [participants, indexes, times] = await contract.getEntries();
-    const parsedEntries = participants.map((participant: string, i: number) => ({
-      entry_id: participant,
-      raffle_index: Number(indexes[i]),
-      entry_time: this.convertToKST(new Date(Number(times[i]) * 1000)),
+    const parsedEntries = await Promise.all(participants.map(async (participant: string, i: number) => {
+      const entry = await this.entryService.findOne(Number(participant));
+      return {
+        entry_id: Number(participant),
+        user_id: Number(entry.user_id),
+        raffle_index: Number(indexes[i]),
+        entry_time: this.convertToKST(new Date(Number(times[i]) * 1000)),
+      };
     }));
 
     const averageIndex = participants.length > 0 ? totalIndex / participants.length : 0;
