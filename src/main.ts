@@ -1,5 +1,9 @@
 process.env.TZ = 'Asia/Seoul';
 
+import helmet from "helmet";
+import * as compression from 'compression';
+import * as morgan from 'morgan';
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {DocumentBuilder, SwaggerModule} from "@nestjs/swagger";
@@ -11,8 +15,9 @@ async function bootstrap() {
   app.setGlobalPrefix('raffle');
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-  //app.use(compression());
-  //app.use(helmet());
+  app.use(compression());
+  app.use(helmet());
+  app.use(morgan('combined'));
 
   const config = new DocumentBuilder()
       .setTitle('Raffle-swagger')
