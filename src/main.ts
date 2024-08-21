@@ -26,7 +26,9 @@ async function bootstrap() {
       //.addServer('/raffle')
       .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('raffle/swagger', app, document);
+  SwaggerModule.setup('raffle/swagger', app, document, {
+    jsonDocumentUrl: 'raffle/swagger/json',
+  });
   app.enableCors();
   /*
   app.enableCors({
