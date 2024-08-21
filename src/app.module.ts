@@ -11,6 +11,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import {ScheduleModule} from "@nestjs/schedule";
 import { HealthModule } from './health/health.module';
+import {MorganModule} from "nest-morgan";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { HealthModule } from './health/health.module';
       synchronize: Boolean(process.env.DB_SYNCHRONIZE),
     }),
     ScheduleModule.forRoot(),
+    MorganModule,
     EntryModule,
     RaffleModule,
     WinnerModule,
