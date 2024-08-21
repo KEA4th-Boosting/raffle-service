@@ -309,6 +309,7 @@ export class RaffleService {
             message: '추첨에 당첨되었습니다.',
           });
 
+          
           this.kafkaProducer.emit('raffle.winner', message)
               .subscribe({
                 next: (response) => {
@@ -360,7 +361,6 @@ export class RaffleService {
     const privateKey = this.configService.get<string>('PRIVATE_KEY');
     const wallet = new ethers.Wallet(privateKey, this.provider);
     const contract = new ethers.Contract(address, this.abi, wallet);
-
     const tx = await contract.selectWinners();
     await tx.wait();
 

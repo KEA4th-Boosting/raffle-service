@@ -118,7 +118,7 @@ export class WinnerService {
         const raffle = await this.raffleService.findOne(winner.raffle_id);
         let updatedWaitingNumber = winner.waiting_number + 1;
 
-        if (updatedWaitingNumber >= raffle.raffle_waiting_cnt) {
+        if (updatedWaitingNumber <= raffle.raffle_waiting_cnt) {
             await this.raffleService.update(winner.raffle_id, {current_waiting_number: updatedWaitingNumber})
             const nextWinner = await this.winnerRepository.findOne({
                 where: {
