@@ -296,6 +296,7 @@ export class RaffleService {
 
         for (let i = 0; i < winners.length; i++) {
           const entry = await this.entryService.findOne(Number(winners[i]));
+          console.log(entry)
           const createWinnerDto: CreateWinnerDto = {
             raffle_id: raffle.id,
             entry_id: entry.id,
