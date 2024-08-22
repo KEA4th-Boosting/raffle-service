@@ -17,10 +17,10 @@ class Transaction {
     @ApiProperty({ description: '응모 아이디', example: 1 })
     entry_id: number;
 
-    @IsInt()
+    @IsString()
     @IsNotEmpty()
-    @ApiProperty({ description: '유저 아이디', example: 1 })
-    user_id: number;
+    @ApiProperty({ description: '유저 이름', example: '홍길동' })
+    user_name: string;
 
     @IsInt()
     @IsNotEmpty()
