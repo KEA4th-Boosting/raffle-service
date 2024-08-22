@@ -15,7 +15,12 @@ class Transaction {
     @IsInt()
     @IsNotEmpty()
     @ApiProperty({ description: '응모 아이디', example: 1 })
-    entry_id: string;
+    entry_id: number;
+
+    @IsString()
+    @IsNotEmpty()
+    @ApiProperty({ description: '유저 이름', example: '홍길동' })
+    user_name: string;
 
     @IsInt()
     @IsNotEmpty()
@@ -94,10 +99,4 @@ export class GetContractDto {
     @IsOptional()
     @ApiProperty({ description: '응모 내역', type: [Transaction] })
     entries?: Transaction[];
-
-    @IsNumber()
-    @IsArray()
-    @IsOptional()
-    @ApiProperty({ description: '추첨 랜덤 숫자', example: [1, 2] })
-    random_numbers?: number[];
 }

@@ -115,6 +115,27 @@ export class RaffleService {
     return raffle;
   }
 
+  async findRaffle(raffleId: number) {
+    const raffle = await this.findOne(raffleId)
+    const productURL = this.configService.get<string>('PRODUCT_SERVICE_URL')
+
+    let roomDetails;
+    try {
+      const response = await lastValueFrom(
+          this.httpService.get(`${productURL}/product/room/${raffle.room_id}`)
+      );
+      roomDetails = response.data.data;
+    } catch (error) {
+      throw new HttpException('방 데이터 조회에 실패하였습니다.', HttpStatus.BAD_REQUEST);
+    }
+
+    return {
+      ...raffle,
+      room_name: roomDetails.roomName,
+      accommodation_name: roomDetails.accommodationName,
+    };
+  }
+
   async findAll(): Promise<Raffle[]> {
     return await this.raffleRepository.find();
   }
@@ -192,10 +213,15 @@ export class RaffleService {
     const winnerCnt: number = Number(await contract.getWinnerCnt());
     const raffleWaitingCnt: number = Number(await contract.getRaffleWaitingCnt());
     const [participants, indexes, times] = await contract.getEntries();
-    const parsedEntries = participants.map((participant: string, i: number) => ({
-      entry_id: participant,
-      raffle_index: Number(indexes[i]),
-      entry_time: this.convertToKST(new Date(Number(times[i]) * 1000)),
+    const parsedEntries = await Promise.all(participants.map(async (participant: string, i: number) => {
+      const entry = await this.entryService.findOne(Number(participant));
+      const userName = await this.getUserName(entry.user_id);
+      return {
+        entry_id: Number(participant),
+        user_name: userName,
+        raffle_index: Number(indexes[i]),
+        entry_time: this.convertToKST(new Date(Number(times[i]) * 1000)),
+      };
     }));
 
     const averageIndex = participants.length > 0 ? totalIndex / participants.length : 0;
@@ -269,11 +295,12 @@ export class RaffleService {
 
     const currentTime = Date.now();
 
-    for (const raffle of raffles) {
+    await Promise.all(raffles.map(async (raffle) => {
       const blockCheck: GetContractDto = await this.getContract(raffle.id);
       if (blockCheck.winners && blockCheck.winners.length > 0) {
-        continue;
+        return;
       }
+
       if (raffle.raffle_date.getTime() <= currentTime) {
         await this.selectWinners(raffle.contract_address);
         const raffleResult: GetContractDto = await this.getContract(raffle.id);
@@ -290,71 +317,67 @@ export class RaffleService {
           throw new HttpException('방 데이터 조회에 실패하였습니다.', HttpStatus.BAD_REQUEST);
         }
 
-        for (let i = 0; i < winners.length; i++) {
-          const entry = await this.entryService.findOne(Number(winners[i]));
-          const createWinnerDto: CreateWinnerDto = {
-            raffle_id: raffle.id,
-            entry_id: entry.id,
-            user_id: entry.user_id,
-            waiting_number: 0,
-            benefit_value: raffle.discount_rate * roomDetails.originalValue,
-          };
-          await this.winnerService.create(createWinnerDto);
+        if (winners.length > 0) {
+          await Promise.all(winners.map(async (entryId) => {
+            const entry = await this.entryService.findOne(Number(entryId));
 
-          const message = JSON.stringify({
-            userId: entry.user_id.toString(),
-            raffleId: raffle.id.toString(),
-            winnerId: '',
-            waitingNumber: '',
-            message: '추첨에 당첨되었습니다.',
-          });
+            const createWinnerDto: CreateWinnerDto = {
+              raffle_id: raffle.id,
+              entry_id: entry.id,
+              user_id: entry.user_id,
+              waiting_number: 0,
+              benefit_value: raffle.discount_rate * roomDetails.originalValue,
+            };
+            await this.winnerService.create(createWinnerDto);
 
-          
-          this.kafkaProducer.emit('raffle.winner', message)
-              .subscribe({
-                next: (response) => {
-                  console.log('Message sent successfully:', response);
-                },
-                error: (err) => {
-                  console.error('Error sending message:', err);
-                }
-              });
+            const message = JSON.stringify({
+              userId: entry.user_id.toString(),
+              raffleId: raffle.id.toString(),
+              winnerId: '',
+              waitingNumber: '',
+              message: '추첨에 당첨되었습니다.',
+            });
+
+            this.kafkaProducer.emit('raffle.winner', message).subscribe({
+              next: (response) => console.log('Message sent successfully:', response),
+              error: (err) => console.error('Error sending message:', err),
+            });
+
+          }));
         }
 
-        for (let i = 0; i < waitingList.length; i++) {
-          const entry = await this.entryService.findOne(Number(waitingList[i]));
-          const createWinnerDto: CreateWinnerDto = {
-            raffle_id: raffle.id,
-            entry_id: entry.id,
-            user_id: entry.user_id,
-            waiting_number: i + 1,
-            benefit_value: raffle.discount_rate * roomDetails.originalValue,
-          };
-          await this.winnerService.create(createWinnerDto);
+        if (winners.length > 0) {
+          await Promise.all(waitingList.map(async (entryId, i) => {
+            const entry = await this.entryService.findOne(Number(entryId));
+            const createWinnerDto: CreateWinnerDto = {
+              raffle_id: raffle.id,
+              entry_id: entry.id,
+              user_id: entry.user_id,
+              waiting_number: i + 1,
+              benefit_value: raffle.discount_rate * roomDetails.originalValue,
+            };
+            await this.winnerService.create(createWinnerDto);
 
-          const message = JSON.stringify({
-            userId: entry.user_id.toString(),
-            raffleId: raffle.id.toString(),
-            winnerId: '',
-            waitingNumber: (i + 1).toString(),
-            message: `${i + 1}번째 대기자로 당첨되었습니다.`,
-          });
+            const message = JSON.stringify({
+              userId: entry.user_id.toString(),
+              raffleId: raffle.id.toString(),
+              winnerId: '',
+              waitingNumber: (i + 1).toString(),
+              message: `${i + 1}번째 대기자로 당첨되었습니다.`,
+            });
 
-          this.kafkaProducer.emit('raffle.waiting', message)
-              .subscribe({
-                next: (response) => {
-                  console.log('Message sent successfully:', response);
-                },
-                error: (err) => {
-                  console.error('Error sending message:', err);
-                }
-              });
+            this.kafkaProducer.emit('raffle.waiting', message).subscribe({
+              next: (response) => console.log('Message sent successfully:', response),
+              error: (err) => console.error('Error sending message:', err),
+            });
+
+          }));
         }
 
         raffle.raffle_status = true;
         await this.raffleRepository.save(raffle);
       }
-    }
+    }));
   }
 
   async selectWinners(address: string) {
@@ -365,5 +388,17 @@ export class RaffleService {
     await tx.wait();
 
     return tx;
+  }
+
+  async getUserName(userId: number): Promise<string> {
+    const memberURL = this.configService.get<string>('MEMBER_SERVICE_URL');
+    try {
+      const response = await lastValueFrom(
+          this.httpService.get(`${memberURL}/member/users/winner-name/${userId}`)
+      );
+      return response.data.data.userName;
+    } catch (error) {
+      throw new HttpException('유저 이름 조회에 실패하였습니다.', HttpStatus.BAD_REQUEST);
+    }
   }
 }
