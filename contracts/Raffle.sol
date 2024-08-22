@@ -47,6 +47,8 @@ contract Raffle {
         randomGenerator = UpbitRandomGenerator(_randomGeneratorAddress);
     }
 
+    event EntryRecorded(string entryId, uint256 raffleIndex, uint256 entryTime);
+
     function enterRaffle(string memory entryId, uint256 raffleIndex, uint256 entryTime) external {
         require(block.timestamp < raffleDate, "This raffle is over.");
         if (entries[entryId].raffleIndex == 0) {
@@ -63,6 +65,8 @@ contract Raffle {
         if (raffleIndex > maxIndex) {
             maxIndex = raffleIndex;
         }
+
+        emit EntryRecorded(entryId, raffleIndex, entryTime);
     }
 
     function selectWinners() external {
