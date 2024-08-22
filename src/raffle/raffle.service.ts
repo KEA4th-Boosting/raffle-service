@@ -317,62 +317,62 @@ export class RaffleService {
           throw new HttpException('방 데이터 조회에 실패하였습니다.', HttpStatus.BAD_REQUEST);
         }
 
-        await Promise.all(winners.map(async (entryId) => {
-          const entry = await this.entryService.findOne(Number(entryId));
+        if (winners.length > 0) {
+          await Promise.all(winners.map(async (entryId) => {
+            const entry = await this.entryService.findOne(Number(entryId));
 
-          const createWinnerDto: CreateWinnerDto = {
-            raffle_id: raffle.id,
-            entry_id: entry.id,
-            user_id: entry.user_id,
-            waiting_number: 0,
-            benefit_value: raffle.discount_rate * roomDetails.originalValue,
-          };
-          await this.winnerService.create(createWinnerDto);
+            const createWinnerDto: CreateWinnerDto = {
+              raffle_id: raffle.id,
+              entry_id: entry.id,
+              user_id: entry.user_id,
+              waiting_number: 0,
+              benefit_value: raffle.discount_rate * roomDetails.originalValue,
+            };
+            await this.winnerService.create(createWinnerDto);
 
-          const message = JSON.stringify({
-            userId: entry.user_id.toString(),
-            raffleId: raffle.id.toString(),
-            winnerId: '',
-            waitingNumber: '',
-            message: '추첨에 당첨되었습니다.',
-          });
+            const message = JSON.stringify({
+              userId: entry.user_id.toString(),
+              raffleId: raffle.id.toString(),
+              winnerId: '',
+              waitingNumber: '',
+              message: '추첨에 당첨되었습니다.',
+            });
 
-          /*
-          this.kafkaProducer.emit('raffle.winner', message).subscribe({
-            next: (response) => console.log('Message sent successfully:', response),
-            error: (err) => console.error('Error sending message:', err),
-          });
-          */
+            this.kafkaProducer.emit('raffle.winner', message).subscribe({
+              next: (response) => console.log('Message sent successfully:', response),
+              error: (err) => console.error('Error sending message:', err),
+            });
 
-        }));
+          }));
+        }
 
-        await Promise.all(waitingList.map(async (entryId, i) => {
-          const entry = await this.entryService.findOne(Number(entryId));
-          const createWinnerDto: CreateWinnerDto = {
-            raffle_id: raffle.id,
-            entry_id: entry.id,
-            user_id: entry.user_id,
-            waiting_number: i + 1,
-            benefit_value: raffle.discount_rate * roomDetails.originalValue,
-          };
-          await this.winnerService.create(createWinnerDto);
+        if (winners.length > 0) {
+          await Promise.all(waitingList.map(async (entryId, i) => {
+            const entry = await this.entryService.findOne(Number(entryId));
+            const createWinnerDto: CreateWinnerDto = {
+              raffle_id: raffle.id,
+              entry_id: entry.id,
+              user_id: entry.user_id,
+              waiting_number: i + 1,
+              benefit_value: raffle.discount_rate * roomDetails.originalValue,
+            };
+            await this.winnerService.create(createWinnerDto);
 
-          const message = JSON.stringify({
-            userId: entry.user_id.toString(),
-            raffleId: raffle.id.toString(),
-            winnerId: '',
-            waitingNumber: (i + 1).toString(),
-            message: `${i + 1}번째 대기자로 당첨되었습니다.`,
-          });
+            const message = JSON.stringify({
+              userId: entry.user_id.toString(),
+              raffleId: raffle.id.toString(),
+              winnerId: '',
+              waitingNumber: (i + 1).toString(),
+              message: `${i + 1}번째 대기자로 당첨되었습니다.`,
+            });
 
-          /*
-          this.kafkaProducer.emit('raffle.waiting', message).subscribe({
-            next: (response) => console.log('Message sent successfully:', response),
-            error: (err) => console.error('Error sending message:', err),
-          });
-          */
+            this.kafkaProducer.emit('raffle.waiting', message).subscribe({
+              next: (response) => console.log('Message sent successfully:', response),
+              error: (err) => console.error('Error sending message:', err),
+            });
 
-        }));
+          }));
+        }
 
         raffle.raffle_status = true;
         await this.raffleRepository.save(raffle);
