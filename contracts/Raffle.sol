@@ -30,6 +30,11 @@ contract Raffle {
 
     UpbitRandomGenerator public randomGenerator;
 
+    modifier onlyOwner() {
+        require(msg.sender == owner, "Only the owner can perform this action.");
+        _;
+    }
+
     constructor(
         string memory _raffleName, 
         uint256 _raffleDate, 
@@ -49,7 +54,7 @@ contract Raffle {
 
     event EntryRecorded(string entryId, uint256 raffleIndex, uint256 entryTime);
 
-    function enterRaffle(string memory entryId, uint256 raffleIndex, uint256 entryTime) external {
+    function enterRaffle(string memory entryId, uint256 raffleIndex, uint256 entryTime) external onlyOwner{
         require(block.timestamp < raffleDate, "This raffle is over.");
         if (entries[entryId].raffleIndex == 0) {
             participants.push(entryId);
@@ -69,8 +74,7 @@ contract Raffle {
         emit EntryRecorded(entryId, raffleIndex, entryTime);
     }
 
-    function selectWinners() external {
-        require(msg.sender == owner, "Only the admin can select winners.");
+    function selectWinners() external onlyOwner{
         require(block.timestamp >= raffleDate, "Raffle has not ended yet.");
         require(participants.length > 0, "No entries in the raffle.");
         require(winners.length < winnerCnt, "Raffle is already done.");
