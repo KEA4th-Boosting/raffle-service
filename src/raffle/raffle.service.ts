@@ -373,7 +373,7 @@ export class RaffleService {
     const memberURL = this.configService.get<string>('MEMBER_SERVICE_URL');
     try {
       const response = await lastValueFrom(
-          this.httpService.get(`${memberURL}/users/winner-name/${userId}`)
+          this.httpService.get(`${memberURL}/member/users/winner-name/${userId}`)
       );
       return response.data.data.userName;
     } catch (error) {
