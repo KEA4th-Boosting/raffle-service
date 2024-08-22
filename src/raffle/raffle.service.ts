@@ -318,7 +318,7 @@ export class RaffleService {
         }
 
         await Promise.all(winners.map(async (entryId) => {
-          const entry = await this.entryService.findOne(Number(winners[entryId]));
+          const entry = await this.entryService.findOne(Number(entryId));
 
           const createWinnerDto: CreateWinnerDto = {
             raffle_id: raffle.id,
