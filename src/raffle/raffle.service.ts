@@ -115,6 +115,27 @@ export class RaffleService {
     return raffle;
   }
 
+  async findRaffle(raffleId: number) {
+    const raffle = await this.findOne(raffleId)
+    const productURL = this.configService.get<string>('PRODUCT_SERVICE_URL')
+
+    let roomDetails;
+    try {
+      const response = await lastValueFrom(
+          this.httpService.get(`${productURL}/product/room/${raffle.room_id}`)
+      );
+      roomDetails = response.data.data;
+    } catch (error) {
+      throw new HttpException('방 데이터 조회에 실패하였습니다.', HttpStatus.BAD_REQUEST);
+    }
+
+    return {
+      ...raffle,
+      room_name: roomDetails.roomName,
+      accommodation_name: roomDetails.accommodationName,
+    };
+  }
+
   async findAll(): Promise<Raffle[]> {
     return await this.raffleRepository.find();
   }
